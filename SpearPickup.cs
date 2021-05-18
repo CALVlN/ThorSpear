@@ -20,9 +20,9 @@ public class SpearPickup : MonoBehaviour
     public Quaternion spearGroundRot = new Quaternion();
     public Quaternion spearTargetRot = new Quaternion();
     public float percentOrSmthn = 0f;
-    double itemPickupStartTime = 0;
+    /*double itemPickupStartTime = 0;
     double itemArrivesAfter = 0;
-    double itemTravelTime = 0;
+    double itemTravelTime = 0;*/
 
     // Collider-related variables
     [SerializeField] Collider spearShaft;
