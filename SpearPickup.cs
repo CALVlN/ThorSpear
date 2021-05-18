@@ -11,6 +11,7 @@ public class SpearPickup : MonoBehaviour
     [SerializeField] Rigidbody spearRigidbody;
 
     public bool holdingItem = false;
+    public bool pickingUpItem = false;
     float timer = 0f;
     float delayAmount = 0f;
 
@@ -50,6 +51,7 @@ public class SpearPickup : MonoBehaviour
             timer += Time.deltaTime;
             spear.transform.position = Vector3.Slerp(spearGroundPos, spearTargetPos, percentOrSmthn);
             spear.transform.rotation = Quaternion.Slerp(spearGroundRot, spearTargetRot, percentOrSmthn);
+            pickingUpItem = false;
         }
 
         if (timer >= delayAmount && percentOrSmthn < 1) {
@@ -62,7 +64,7 @@ public class SpearPickup : MonoBehaviour
         /*itemPickupStartTime = Time.timeAsDouble;
         itemArrivesAfter = itemPickupStartTime + 0.5;*/
 
-        // Set rigidbody to kinematic.
+        // Turn off gravity.
         spearRigidbody.isKinematic = true;
 
         // Set spear as child of player.
@@ -90,10 +92,11 @@ public class SpearPickup : MonoBehaviour
             Debug.DrawRay(playerCamera.transform.position, cameraForward * hit.distance, Color.red);
 
             // If e is pressed and the player is not holding an item, do this.
-            if (Input.GetKeyDown("e") && holdingItem == false) {
+            if (Input.GetKeyDown("e") && !holdingItem && !pickingUpItem) {
                 spearGroundPos = spear.transform.position;
                 spearGroundRot = spear.transform.rotation;
                 holdingItem = true;
+                pickingUpItem = true;
                 PickUpItem();
             }
 

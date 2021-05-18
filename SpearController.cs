@@ -8,7 +8,6 @@ public class SpearController : MonoBehaviour
     bool primaryAttacking = false;
     float primaryAttackingTime = 0f;
 
-
     // Start is called before the first frame update
     void Start()
     {
@@ -18,6 +17,8 @@ public class SpearController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        CanAttack();
+
         if (Input.GetMouseButtonDown(0)/* && holdingItem from Weapons.css is true */) {
             primaryAttacking = true;
 
@@ -34,6 +35,11 @@ public class SpearController : MonoBehaviour
             }
         }
     }
+
+    void CanAttack() {
+        // If holdingItem and !pickingUpItem from SpearPickup.cs, and !attacking from this script, return true. Else, return false.
+    }
+
     private void OnTriggerEnter(Collider other) {
         if (other.CompareTag("Enemy") && primaryAttacking) {
             Debug.Log(other);
