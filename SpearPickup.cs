@@ -105,12 +105,16 @@ public class SpearPickup : MonoBehaviour
         spearHammerHead.isTrigger = false;
 
         // Add velocity to dropped item.
-        Vector3 addedVelocity = new Vector3(0, 2, 2);
+        Vector3 addedVelocity = new Vector3(0, 4, 6);
         playerVelocity = playerController.velocity;
         itemDropVelocity = playerVelocity;
         itemDropVelocity += addedVelocity;
-
-        spearRigidbody.velocity = itemDropVelocity;
+        float throwStrength = 20;
+        // Add player speed to item.
+        spearRigidbody.velocity = playerVelocity;
+        // Add extra veocity in the direction the camera is facing.
+        spearRigidbody.AddForce(throwStrength * playerCamera.transform.forward, ForceMode.Impulse);
+        spearRigidbody.AddForce(throwStrength * playerCamera.transform.up, ForceMode.Impulse);
 
         // Set spear as child of the player's parent.
         transform.parent = player.transform.parent;
