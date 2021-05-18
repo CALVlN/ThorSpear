@@ -2,55 +2,85 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpearAttack : MonoBehaviour
-{
+public class SpearAttack : MonoBehaviour {
     [SerializeField] Transform player;
     [SerializeField] Transform playerCamera;
     //[SerializeField] Transform weaponTargetPosition;
     [SerializeField] Transform spear;
     [SerializeField] Rigidbody spearRigidbody;
+    [SerializeField] Rigidbody enemyRigidbody;
     // Collider variables
     [SerializeField] Collider spearShaft;
     [SerializeField] Collider spearHammerHead;
+    [SerializeField] Renderer enemyRenderer;
+    [SerializeField] Material deadRobotMaterial;
 
-    float weaponDamage = 10f;
+    // float weaponDamage = 10f;
     bool primaryAttacking = false;
     float primaryAttackingTime = 0f;
+    bool addDrag = false;
+    float dragTime = 0f;
+
+    // Rotation related variables.
+    Vector3 spearCurrentPos = new Vector3();
+    Vector3 spearTargetPos = new Vector3();
+    Vector3 spearOldPos = new Vector3();
 
     // Start is called before the first frame update
-    void Start()
-    {
-        
+    void Start() {
+
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        Debug.Log(CanAttack());
+    void Update() {
         if (Input.GetMouseButtonDown(0) && CanAttack()) {
             primaryAttacking = true;
-
             PrimaryAttack();
         }
         if (primaryAttacking == true) {
-            Debug.Log("PRIMARY ATTACKING");
             primaryAttackingTime += Time.deltaTime;
 
-            if (primaryAttackingTime >= 1.5f && !gameObject.GetComponent<SummonSpear>().pickingUpItem && !gameObject.GetComponent<SummonSpear>().holdingItem) {
+            if (primaryAttackingTime >= 1f && !gameObject.GetComponent<SummonSpear>().pickingUpItem && !gameObject.GetComponent<SummonSpear>().holdingItem) {
                 primaryAttacking = false;
                 primaryAttackingTime = 0f;
 
                 // Turn on gravity.
                 spearRigidbody.useGravity = true;
+
+                // Temporarily add drag to the spear to slow it down.
+                //addDrag = true;
             }
             else if (gameObject.GetComponent<SummonSpear>().pickingUpItem) {
                 primaryAttacking = false;
                 primaryAttackingTime = 0f;
-                Debug.Log("ran");
             }
         }
-    }
+        /*if (addDrag) {
+            primaryAttacking = false;
+            primaryAttackingTime = 0f;
+            dragTime += Time.deltaTime;
+            //Debug.Log(dragTime);
+            spearRigidbody.drag = 2f;
+            spearRigidbody.angularDrag = 2f;
 
+            //Debug.Log("Add drag");
+
+            if (spearRigidbody.useGravity && addDrag) {
+                // Turn off gravity.
+                spearRigidbody.useGravity = false;
+            }
+
+            if (dragTime >= 1) {
+                Debug.Log("Disable drag.");
+                spearRigidbody.drag = 0f;
+                spearRigidbody.angularDrag = 0.05f;
+                addDrag = false;
+                dragTime = 0f;
+                // Turn on gravity.
+                spearRigidbody.useGravity = true;
+            }
+        }*/
+    }
     // Return true if below conditions are met, in which case attacking should be allowed.
     bool CanAttack() {
         bool holdingItem = gameObject.GetComponent<SummonSpear>().holdingItem;
@@ -64,11 +94,12 @@ public class SpearAttack : MonoBehaviour
             return false;
         }
     }
-
     private void OnTriggerEnter(Collider other) {
         if (other.CompareTag("Enemy") && primaryAttacking) {
             Debug.Log(other);
-            Destroy(other.gameObject);
+            // Possibly add stuff to make the robot explode into pieces and then disappear later.
+            enemyRenderer.GetComponent<MeshRenderer>().material = deadRobotMaterial;
+            enemyRigidbody.constraints = RigidbodyConstraints.None;
         }
     }
 
@@ -92,8 +123,8 @@ public class SpearAttack : MonoBehaviour
         spearRigidbody.velocity = playerVelocity;
 
         // Add extra veocity in the direction the camera is facing.
-        spearRigidbody.AddForce(throwStrength * playerCamera.transform.forward, ForceMode.Impulse);
-        spearRigidbody.AddForce(throwStrength/30 * playerCamera.transform.up, ForceMode.Impulse);
+        spearRigidbody.AddForce(throwStrength * 2 * playerCamera.transform.forward, ForceMode.Impulse);
+        spearRigidbody.AddForce(throwStrength / 30 * playerCamera.transform.up, ForceMode.Impulse);
 
         // Set spear as child of the player's parent.
         transform.parent = player.transform.parent;

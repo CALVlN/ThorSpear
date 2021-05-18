@@ -29,9 +29,11 @@ public class SummonSpear : MonoBehaviour
     double itemArrivesAfter = 0;
     double itemTravelTime = 0;*/
 
-    // SmoothDamp variables
+    // SmoothDamp-related variables
     Vector3 spearCurrentPos = new Vector3();
-    Vector3 spearOlderPos = new Vector3();
+    Vector3 spearOldPos = new Vector3();
+
+    // Vector3 spearOlderPos = new Vector3();
     public float rotationSpeed = 1f;
 
     // Collider variables
@@ -78,12 +80,6 @@ public class SummonSpear : MonoBehaviour
             float spearSmoothTime = 0.01f;
             float spearMaxVelocity = 60f;
 
-            // find the vector pointing from our position to the target
-            Vector3 directionOfTravel = (spearTargetPos - transform.position).normalized;
-
-            // create the rotation we need to be in to look at the target
-            Quaternion lookRotation = Quaternion.LookRotation(directionOfTravel);
-
             // Use the SmoothDamp method to move the spear towards the target position smoothly.
             spear.transform.position = Vector3.SmoothDamp(spearCurrentPos, spearTargetPos, ref spearCurrentVel, spearSmoothTime, spearMaxVelocity);
 
@@ -91,6 +87,7 @@ public class SummonSpear : MonoBehaviour
             spear.LookAt(spearTargetPos);
             // Fix weird rotation problem.
             transform.rotation *= Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+            spearOldPos = spear.transform.position;
         }
 
         float distanceToPlayer = Vector3.Distance(spearCurrentPos, spearTargetPos);
@@ -99,7 +96,6 @@ public class SummonSpear : MonoBehaviour
             if (timer >= delayAmount && distanceToPlayer >= 0) {
                 timer = 0f;
                 percentOrSmthn += 0.01f;
-                Debug.Log(timer);
             }
             // Use the Slerp method to rotate the spear towards the target rotation until percentOrSmthn reaches 100%. Needs to be redone.
             spear.transform.rotation = Quaternion.Slerp(spear.rotation, spearTargetRot, percentOrSmthn);
@@ -123,19 +119,16 @@ public class SummonSpear : MonoBehaviour
         holdingItem = true;
         pickingUpItem = true;
 
-        /*itemPickupStartTime = Time.timeAsDouble;
-        itemArrivesAfter = itemPickupStartTime + 0.5;*/
-
         // Turn off gravity.
         spearRigidbody.useGravity = false;
-
-        // Set weapon head and shaft colliders to triggers so they don't interact with other colliders.
-        spearShaft.isTrigger = true;
-        spearHammerHead.isTrigger = true;
 
         // Set weapon velocity and rotation to zero.
         spearRigidbody.velocity = Vector3.zero;
         spearRigidbody.angularVelocity = Vector3.zero;
+
+        // Set weapon head and shaft colliders to triggers so they don't interact with other colliders.
+        spearShaft.isTrigger = true;
+        spearHammerHead.isTrigger = true;
     }
 
     void DropItem() {
