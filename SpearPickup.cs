@@ -36,22 +36,22 @@ public class SpearPickup : MonoBehaviour
     void Update() {
         RaycastToWeapon();
         if (holdingItem) {
-            PickUpItem();
             HoldItem();
         }
     }
 
     void HoldItem() {
-        if (percentOrSmthn < 1) {
-            timer += Time.deltaTime;
-            Debug.Log(timer);
-        }
 
         spearTargetPos = weaponTargetPosition.transform.position;
         spearTargetRot = weaponTargetPosition.transform.rotation;
 
-        spear.transform.position = Vector3.Slerp(spearGroundPos, spearTargetPos, percentOrSmthn);
-        spear.transform.rotation = Quaternion.Slerp(spearGroundRot, spearTargetRot, percentOrSmthn);
+        // If the item has gotten to the lerping destination, do this.
+        if (percentOrSmthn < 1) {
+            timer += Time.deltaTime;
+            spear.transform.position = Vector3.Slerp(spearGroundPos, spearTargetPos, percentOrSmthn);
+            spear.transform.rotation = Quaternion.Slerp(spearGroundRot, spearTargetRot, percentOrSmthn);
+        }
+
         if (timer >= delayAmount && percentOrSmthn < 1) {
             timer = 0f;
             percentOrSmthn += 0.07f;
@@ -61,6 +61,9 @@ public class SpearPickup : MonoBehaviour
     void PickUpItem() {
         /*itemPickupStartTime = Time.timeAsDouble;
         itemArrivesAfter = itemPickupStartTime + 0.5;*/
+
+        // Set rigidbody to kinematic.
+        spearRigidbody.isKinematic = true;
 
         // Set spear as child of player.
         transform.parent = player.transform;
@@ -91,7 +94,6 @@ public class SpearPickup : MonoBehaviour
                 spearGroundPos = spear.transform.position;
                 spearGroundRot = spear.transform.rotation;
                 holdingItem = true;
-                spearRigidbody.isKinematic = true;
                 PickUpItem();
             }
 
