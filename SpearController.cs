@@ -23,10 +23,10 @@ public class SpearController : MonoBehaviour
             primaryAttacking = true;
 
             PrimaryAttack();
-            Debug.Log("ATTAAAAAACK!");
+            // Debug.Log("ATTAAAAAACK!");
         }
         if (primaryAttacking == true) {
-            Debug.Log("PRIMARY ATTACKING");
+            // Debug.Log("PRIMARY ATTACKING");
             primaryAttackingTime += Time.deltaTime;
 
             if (primaryAttackingTime >= 1.5f) {

@@ -15,6 +15,10 @@ public class SpearPickup : MonoBehaviour
     float timer = 0f;
     float delayAmount = 0f;
 
+    Vector3 itemDropVelocity = new Vector3();
+    Vector3 playerVelocity = new Vector3();
+    public PlayerController playerController;
+
     // Lerp variables
     public Vector3 spearGroundPos = new Vector3();
     public Vector3 spearTargetPos = new Vector3();
@@ -35,6 +39,13 @@ public class SpearPickup : MonoBehaviour
     }
 
     void Update() {
+        // if e is pressed and the payer is holding an item and not picking up an item, do this.
+        if (Input.GetKeyDown("e") && holdingItem && !pickingUpItem) {
+            holdingItem = false;
+            pickingUpItem = false;
+            DropItem();
+        }
+
         RaycastToWeapon();
         if (holdingItem) {
             HoldItem();
@@ -42,37 +53,70 @@ public class SpearPickup : MonoBehaviour
     }
 
     void HoldItem() {
-
         spearTargetPos = weaponTargetPosition.transform.position;
         spearTargetRot = weaponTargetPosition.transform.rotation;
 
-        // If the item has gotten to the lerping destination, do this.
-        if (percentOrSmthn < 1) {
+        // If the item is not at the lerping destination, do this.
+        if (percentOrSmthn <= 1) {
             timer += Time.deltaTime;
             spear.transform.position = Vector3.Slerp(spearGroundPos, spearTargetPos, percentOrSmthn);
             spear.transform.rotation = Quaternion.Slerp(spearGroundRot, spearTargetRot, percentOrSmthn);
+        }
+
+        // If the item has gotten to the lerping destination, do this.
+        if (percentOrSmthn >= 1) {
             pickingUpItem = false;
         }
 
-        if (timer >= delayAmount && percentOrSmthn < 1) {
+        if (!pickingUpItem && holdingItem) {
+            // Set spear as child of player.
+            transform.parent = player.transform;
+        }
+
+        if (timer >= delayAmount && pickingUpItem) {
             timer = 0f;
-            percentOrSmthn += 0.07f;
+            percentOrSmthn += 0.01f;
         }
     }
 
+    // This runs once when the player presses e to pick up the item.
     void PickUpItem() {
         /*itemPickupStartTime = Time.timeAsDouble;
         itemArrivesAfter = itemPickupStartTime + 0.5;*/
 
         // Turn off gravity.
-        spearRigidbody.isKinematic = true;
-
-        // Set spear as child of player.
-        transform.parent = player.transform;
+        spearRigidbody.useGravity = false;
 
         // Set weapon head and shaft colliders to triggers so they don't interact with other colliders.
         spearShaft.isTrigger = true;
         spearHammerHead.isTrigger = true;
+
+        // Set weapon velocity and rotation to zero.
+        spearRigidbody.velocity = Vector3.zero;
+        spearRigidbody.angularVelocity = Vector3.zero;
+    }
+    
+    void DropItem() {
+        // Turn on gravity.
+        spearRigidbody.useGravity = true;
+
+        // Set weapon head and shaft colliders to no longer be triggers so they interact with other colliders.
+        spearShaft.isTrigger = false;
+        spearHammerHead.isTrigger = false;
+
+        // Add velocity to dropped item.
+        Vector3 addedVelocity = new Vector3(0, 2, 2);
+        playerVelocity = playerController.velocity;
+        itemDropVelocity = playerVelocity;
+        itemDropVelocity += addedVelocity;
+
+        spearRigidbody.velocity = itemDropVelocity;
+
+        // Set spear as child of the player's parent.
+        transform.parent = player.transform.parent;
+
+        // Recent percentOrSmth to 0.
+        percentOrSmthn = 0f;
     }
 
     bool RaycastToWeapon() {
@@ -91,7 +135,7 @@ public class SpearPickup : MonoBehaviour
             // the RaycastToWeapon() function needs to be called in Update()
             Debug.DrawRay(playerCamera.transform.position, cameraForward * hit.distance, Color.red);
 
-            // If e is pressed and the player is not holding an item, do this.
+            // If e is pressed and the player is not holding or picking up an item, do this.
             if (Input.GetKeyDown("e") && !holdingItem && !pickingUpItem) {
                 spearGroundPos = spear.transform.position;
                 spearGroundRot = spear.transform.rotation;
