@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpearPickup : MonoBehaviour
+public class SummonSpear : MonoBehaviour
 {
     [SerializeField] Transform player;
     [SerializeField] Transform playerCamera;
@@ -15,7 +15,6 @@ public class SpearPickup : MonoBehaviour
     float timer = 0f;
     float delayAmount = 0f;
 
-    Vector3 itemDropVelocity = new Vector3();
     Vector3 playerVelocity = new Vector3();
     public PlayerController playerController;
 
@@ -29,7 +28,11 @@ public class SpearPickup : MonoBehaviour
     double itemArrivesAfter = 0;
     double itemTravelTime = 0;*/
 
-    // Collider-related variables
+    // SmoothDamp variables
+    Vector3 spearCurrentPos = new Vector3();
+    Vector3 spearOlderPos = new Vector3();
+
+    // Collider variables
     [SerializeField] Collider spearShaft;
     [SerializeField] Collider spearHammerHead;
 
@@ -38,33 +41,52 @@ public class SpearPickup : MonoBehaviour
 
     }
 
+    // Update is called once per frame.
     void Update() {
-        // if e is pressed and the payer is holding an item and not picking up an item, do this.
-        if (Input.GetKeyDown("e") && holdingItem && !pickingUpItem) {
-            holdingItem = false;
-            pickingUpItem = false;
+        // if q is pressed and the player is holding an item and not picking up an item, do this.
+        if (Input.GetKeyDown("q") && holdingItem && !pickingUpItem) {
             DropItem();
         }
 
-        RaycastToWeapon();
+        // If the right mouse button is pressed and the player is not holding or picking up an item, do this.
+        if (Input.GetMouseButtonDown(1) && !holdingItem && !pickingUpItem) {
+            PickUpItem();
+        }
+
+        // If the variable holdingItem is true, then hold the weapon.
         if (holdingItem) {
             HoldItem();
         }
     }
 
+    // This is run constantly from the frame after the player summons their weapon until they stop holding it.
     void HoldItem() {
         spearTargetPos = weaponTargetPosition.transform.position;
         spearTargetRot = weaponTargetPosition.transform.rotation;
 
-        // If the item is not at the lerping destination, do this.
-        if (percentOrSmthn <= 1) {
-            timer += Time.deltaTime;
-            spear.transform.position = Vector3.Slerp(spearGroundPos, spearTargetPos, percentOrSmthn);
+        // If the item is being picked up, do this.
+        if (pickingUpItem == true) {
+            /* TODO
+             * Make weapon rotation work properly. Also make it aim in the direction of travel until just before it arrives.
+             * Make weapon travel faster at end of smoothdamp function. Currently even if it looks like it's in your hand, it technically isn't.
+            */
+
+            spearCurrentPos = spear.transform.position;
+            Vector3 spearCurrentVel = spearRigidbody.velocity;
+            float spearSmoothTime = 0.01f;
+            float spearMaxVelocity = 60f;
+
+            // Vector3 headingDirection = (spearCurrentPos - spearOlderPos).normalized;
+            // spearOlderPos = spear.transform.position;
+
+            // Use the SmoothDamp method to move the spear towards the target position smoothly.
+            spear.transform.position = Vector3.SmoothDamp(spearCurrentPos, spearTargetPos, ref spearCurrentVel, spearSmoothTime, spearMaxVelocity);
+            // Use the Slerp method to rotate the spear towards the target rotation until percentOrSmthn reaches 100%. Needs to be redone.
             spear.transform.rotation = Quaternion.Slerp(spearGroundRot, spearTargetRot, percentOrSmthn);
         }
 
-        // If the item has gotten to the lerping destination, do this.
-        if (percentOrSmthn >= 1) {
+        // If the item has gotten to the destination (player), do this.
+        if (spearCurrentPos == spearTargetPos) {
             pickingUpItem = false;
         }
 
@@ -73,14 +95,20 @@ public class SpearPickup : MonoBehaviour
             transform.parent = player.transform;
         }
 
+        // Needs to be redone. Currently this is the source of the percentOrSmthn variable.
         if (timer >= delayAmount && pickingUpItem) {
             timer = 0f;
             percentOrSmthn += 0.01f;
         }
     }
 
-    // This runs once when the player presses e to pick up the item.
+    // This runs once when the player picks up the item.
     void PickUpItem() {
+        spearGroundPos = spear.transform.position;
+        spearGroundRot = spear.transform.rotation;
+        holdingItem = true;
+        pickingUpItem = true;
+
         /*itemPickupStartTime = Time.timeAsDouble;
         itemArrivesAfter = itemPickupStartTime + 0.5;*/
 
@@ -95,8 +123,11 @@ public class SpearPickup : MonoBehaviour
         spearRigidbody.velocity = Vector3.zero;
         spearRigidbody.angularVelocity = Vector3.zero;
     }
-    
+
     void DropItem() {
+        holdingItem = false;
+        pickingUpItem = false;
+
         // Turn on gravity.
         spearRigidbody.useGravity = true;
 
@@ -104,58 +135,50 @@ public class SpearPickup : MonoBehaviour
         spearShaft.isTrigger = false;
         spearHammerHead.isTrigger = false;
 
-        // Add velocity to dropped item.
-        Vector3 addedVelocity = new Vector3(0, 4, 6);
+        // Reset percentOrSmth to zero.
+        percentOrSmthn = 0f;
+
+        /* ADDING VELOCITY TO DROPPED WEAPON - maybe use a function here?*/
         playerVelocity = playerController.velocity;
-        itemDropVelocity = playerVelocity;
-        itemDropVelocity += addedVelocity;
         float throwStrength = 20;
+
         // Add player speed to item.
         spearRigidbody.velocity = playerVelocity;
+
         // Add extra veocity in the direction the camera is facing.
         spearRigidbody.AddForce(throwStrength * playerCamera.transform.forward, ForceMode.Impulse);
         spearRigidbody.AddForce(throwStrength * playerCamera.transform.up, ForceMode.Impulse);
 
         // Set spear as child of the player's parent.
         transform.parent = player.transform.parent;
-
-        // Recent percentOrSmth to 0.
-        percentOrSmthn = 0f;
     }
 
-    bool RaycastToWeapon() {
+    // Unused raycast that used to be needed to tell when the player was looking at the weapon.
+
+    /*bool RaycastToWeapon() {
         RaycastHit hit;
 
-        /*---------------------------------------------------
+        *//*---------------------------------------------------
         After a day of troubleshooting and a night of sleeping, I figured out that my code was translating cameraForward into global space
         when it was given in global space in the first place.
-        ---------------------------------------------------*/
+        ---------------------------------------------------*//*
 
         Vector3 cameraForward = playerCamera.forward;
 
-        // If the cast ray hits an object tagged "Spear," do this.
+        // If the ray hits an object tagged "Spear," do this.
         if (Physics.Raycast(playerCamera.transform.position, cameraForward, out hit, 4.5f) && hit.transform.tag == "Spear") {
-            // If the raycast hits something, draw a red line from the player to where the raycast hit. For this to work,
+            // If the raycast hits a spear, draw a red line from the player to where the raycast hit. For this to work,
             // the RaycastToWeapon() function needs to be called in Update()
             Debug.DrawRay(playerCamera.transform.position, cameraForward * hit.distance, Color.red);
-
-            // If e is pressed and the player is not holding or picking up an item, do this.
-            if (Input.GetKeyDown("e") && !holdingItem && !pickingUpItem) {
-                spearGroundPos = spear.transform.position;
-                spearGroundRot = spear.transform.rotation;
-                holdingItem = true;
-                pickingUpItem = true;
-                PickUpItem();
-            }
 
             return true;
         }
         else {
-            // If the raycast doesn't hit something, draw a white line from the player to the maximum raycast distance.
+            // If the raycast doesn't hit a spear, draw a white line from the player to the maximum raycast distance.
             // For this to work, the RaycastToWeapon() function needs to be called in Update()
             Debug.DrawRay(playerCamera.transform.position, cameraForward * 4.5f, Color.white);
 
             return false;
         }
-    }
+    }*/
 }
