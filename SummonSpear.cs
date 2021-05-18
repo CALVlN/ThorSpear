@@ -14,6 +14,7 @@ public class SummonSpear : MonoBehaviour
     public bool pickingUpItem = false;
     float timer = 0f;
     float delayAmount = 0f;
+    public float throwStrength = 70f;
 
     Vector3 playerVelocity = new Vector3();
     public PlayerController playerController;
@@ -31,6 +32,7 @@ public class SummonSpear : MonoBehaviour
     // SmoothDamp variables
     Vector3 spearCurrentPos = new Vector3();
     Vector3 spearOlderPos = new Vector3();
+    public float rotationSpeed = 1f;
 
     // Collider variables
     [SerializeField] Collider spearShaft;
@@ -76,13 +78,31 @@ public class SummonSpear : MonoBehaviour
             float spearSmoothTime = 0.01f;
             float spearMaxVelocity = 60f;
 
-            // Vector3 headingDirection = (spearCurrentPos - spearOlderPos).normalized;
-            // spearOlderPos = spear.transform.position;
+            // find the vector pointing from our position to the target
+            Vector3 directionOfTravel = (spearTargetPos - transform.position).normalized;
+
+            // create the rotation we need to be in to look at the target
+            Quaternion lookRotation = Quaternion.LookRotation(directionOfTravel);
 
             // Use the SmoothDamp method to move the spear towards the target position smoothly.
             spear.transform.position = Vector3.SmoothDamp(spearCurrentPos, spearTargetPos, ref spearCurrentVel, spearSmoothTime, spearMaxVelocity);
+
+            // Snappy prototyping rotation.
+            spear.LookAt(spearTargetPos);
+            // Fix weird rotation problem.
+            transform.rotation *= Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+        }
+
+        float distanceToPlayer = Vector3.Distance(spearCurrentPos, spearTargetPos);
+        if (distanceToPlayer < 7f) {
+            // Increases percentOrSmthn over time.
+            if (timer >= delayAmount && distanceToPlayer >= 0) {
+                timer = 0f;
+                percentOrSmthn += 0.01f;
+                Debug.Log(timer);
+            }
             // Use the Slerp method to rotate the spear towards the target rotation until percentOrSmthn reaches 100%. Needs to be redone.
-            spear.transform.rotation = Quaternion.Slerp(spearGroundRot, spearTargetRot, percentOrSmthn);
+            spear.transform.rotation = Quaternion.Slerp(spear.rotation, spearTargetRot, percentOrSmthn);
         }
 
         // If the item has gotten to the destination (player), do this.
@@ -93,12 +113,6 @@ public class SummonSpear : MonoBehaviour
         if (!pickingUpItem && holdingItem) {
             // Set spear as child of player.
             transform.parent = player.transform;
-        }
-
-        // Needs to be redone. Currently this is the source of the percentOrSmthn variable.
-        if (timer >= delayAmount && pickingUpItem) {
-            timer = 0f;
-            percentOrSmthn += 0.01f;
         }
     }
 
@@ -140,14 +154,14 @@ public class SummonSpear : MonoBehaviour
 
         /* ADDING VELOCITY TO DROPPED WEAPON - maybe use a function here?*/
         playerVelocity = playerController.velocity;
-        float throwStrength = 20;
+        throwStrength = 70;
 
         // Add player speed to item.
         spearRigidbody.velocity = playerVelocity;
 
         // Add extra veocity in the direction the camera is facing.
-        spearRigidbody.AddForce(throwStrength * playerCamera.transform.forward, ForceMode.Impulse);
-        spearRigidbody.AddForce(throwStrength * playerCamera.transform.up, ForceMode.Impulse);
+        spearRigidbody.AddForce(throwStrength/9 * playerCamera.transform.forward, ForceMode.Impulse);
+        spearRigidbody.AddForce(throwStrength/9 * playerCamera.transform.up, ForceMode.Impulse);
 
         // Set spear as child of the player's parent.
         transform.parent = player.transform.parent;
