@@ -32,6 +32,7 @@ public class SummonSpear : MonoBehaviour
     // SmoothDamp-related variables
     Vector3 spearCurrentPos = new Vector3();
     Vector3 spearOldPos = new Vector3();
+    float smoothTimeChange = 0.005f;
 
     // Vector3 spearOlderPos = new Vector3();
     public float rotationSpeed = 1f;
@@ -80,6 +81,12 @@ public class SummonSpear : MonoBehaviour
             float spearSmoothTime = 0.01f;
             float spearMaxVelocity = 60f;
 
+            // If the weapon's distance to the player's hand is less than 0.12f, teleport to target position and set pickingUpItem to false.
+            if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 0.12f) {
+                pickingUpItem = false;
+                spear.transform.position = spearTargetPos;
+            }
+
             // Use the SmoothDamp method to move the spear towards the target position smoothly.
             spear.transform.position = Vector3.SmoothDamp(spearCurrentPos, spearTargetPos, ref spearCurrentVel, spearSmoothTime, spearMaxVelocity);
 
@@ -91,7 +98,7 @@ public class SummonSpear : MonoBehaviour
         }
 
         float distanceToPlayer = Vector3.Distance(spearCurrentPos, spearTargetPos);
-        if (distanceToPlayer < 7f) {
+        if (distanceToPlayer < 12f) {
             // Increases percentOrSmthn over time.
             if (timer >= delayAmount && distanceToPlayer >= 0) {
                 timer = 0f;
@@ -104,6 +111,7 @@ public class SummonSpear : MonoBehaviour
         // If the item has gotten to the destination (player), do this.
         if (spearCurrentPos == spearTargetPos) {
             pickingUpItem = false;
+            spear.rotation = spearTargetRot;
         }
 
         if (!pickingUpItem && holdingItem) {
