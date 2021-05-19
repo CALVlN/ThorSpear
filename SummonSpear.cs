@@ -41,6 +41,9 @@ public class SummonSpear : MonoBehaviour
     [SerializeField] Collider spearShaft;
     [SerializeField] Collider spearHammerHead;
 
+    // hammerAirControlVariables
+    [SerializeField] Transform airControlDesiredPos;
+
     // Start is called before the first frame update
     void Start() {
 
@@ -61,6 +64,18 @@ public class SummonSpear : MonoBehaviour
         // If the variable holdingItem is true, then hold the weapon.
         if (holdingItem) {
             HoldItem();
+        }
+
+        if (Input.GetKey("f") && canFly()) {
+            flyWithHammer();
+        }
+        bool canFly() {
+            if (!holdingItem) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
     }
 
@@ -138,7 +153,6 @@ public class SummonSpear : MonoBehaviour
         spearShaft.isTrigger = true;
         spearHammerHead.isTrigger = true;
     }
-
     void DropItem() {
         holdingItem = false;
         pickingUpItem = false;
@@ -167,33 +181,18 @@ public class SummonSpear : MonoBehaviour
         // Set spear as child of the player's parent.
         transform.parent = player.transform.parent;
     }
+    void flyWithHammer() {
+        spearTargetPos = player.transform.position;
+        spearCurrentPos = spear.transform.position;
 
-    // Unused raycast that used to be needed to tell when the player was looking at the weapon.
-
-    /*bool RaycastToWeapon() {
-        RaycastHit hit;
-
-        *//*---------------------------------------------------
-        After a day of troubleshooting and a night of sleeping, I figured out that my code was translating cameraForward into global space
-        when it was given in global space in the first place.
-        ---------------------------------------------------*//*
-
-        Vector3 cameraForward = playerCamera.forward;
-
-        // If the ray hits an object tagged "Spear," do this.
-        if (Physics.Raycast(playerCamera.transform.position, cameraForward, out hit, 4.5f) && hit.transform.tag == "Spear") {
-            // If the raycast hits a spear, draw a red line from the player to where the raycast hit. For this to work,
-            // the RaycastToWeapon() function needs to be called in Update()
-            Debug.DrawRay(playerCamera.transform.position, cameraForward * hit.distance, Color.red);
-
-            return true;
-        }
-        else {
-            // If the raycast doesn't hit a spear, draw a white line from the player to the maximum raycast distance.
-            // For this to work, the RaycastToWeapon() function needs to be called in Update()
-            Debug.DrawRay(playerCamera.transform.position, cameraForward * 4.5f, Color.white);
-
-            return false;
-        }
-    }*/
+        Vector3 spearCurrentVel = spearRigidbody.velocity;
+        float spearSmoothTime = 0.01f;
+        float spearMaxVelocity = 60f;
+        // Use the SmoothDamp method to move the spear towards the target position smoothly.
+        spear.transform.position = Vector3.SmoothDamp(spearCurrentPos, spearTargetPos, ref spearCurrentVel, spearSmoothTime, spearMaxVelocity);
+        // Snappy prototyping rotation.
+        spear.LookAt(airControlDesiredPos);
+        // Fix weird rotation problem.
+        transform.rotation *= Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+    }
 }
