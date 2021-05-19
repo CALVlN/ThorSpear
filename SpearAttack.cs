@@ -14,6 +14,7 @@ public class SpearAttack : MonoBehaviour {
     [SerializeField] Collider spearHammerHead;
     [SerializeField] Renderer enemyRenderer;
     [SerializeField] Material deadRobotMaterial;
+    [SerializeField] Transform robotPrefab;
 
     // float weaponDamage = 10f;
     bool primaryAttacking = false;
@@ -94,13 +95,18 @@ public class SpearAttack : MonoBehaviour {
             return false;
         }
     }
-    private void OnTriggerEnter(Collider other) {
-        if (other.CompareTag("Enemy") && primaryAttacking) {
-            Debug.Log(other);
+    private void OnCollisionEnter(Collision collision) {
+        if (collision.gameObject.CompareTag("Enemy") && primaryAttacking) {
+            Debug.Log("WHO " + collision);
             // Possibly add stuff to make the robot explode into pieces and then disappear later.
-            enemyRenderer.GetComponent<MeshRenderer>().material = deadRobotMaterial;
-            enemyRigidbody.constraints = RigidbodyConstraints.None;
+            collision.gameObject.GetComponentInChildren<MeshRenderer>().material = deadRobotMaterial;
+            //enemyRenderer.GetComponent<MeshRenderer>().material = deadRobotMaterial;
+            collision.rigidbody.constraints = RigidbodyConstraints.None;
+            Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
         }
+    }
+    private void OnTriggerEnter(Collider other) {
+        
     }
 
     // Attack and do 10 damage to all enemies hit by the hammer.
