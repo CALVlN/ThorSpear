@@ -86,18 +86,16 @@ public class SpearAttack : MonoBehaviour {
     bool CanAttack() {
         bool holdingItem = gameObject.GetComponent<SummonSpear>().holdingItem;
         bool pickingUpItem = gameObject.GetComponent<SummonSpear>().pickingUpItem;
+        bool airControlling = gameObject.GetComponent<SummonSpear>().airControlling;
 
         // If holdingItem and !pickingUpItem from SpearPickup.cs, and !attacking from this script, return true. Else, return false.
-        if (holdingItem && !pickingUpItem && !primaryAttacking) {
+        if (holdingItem && !pickingUpItem && !primaryAttacking && !airControlling)
             return true;
-        }
-        else {
+        else
             return false;
-        }
     }
     private void OnCollisionEnter(Collision collision) {
-        if (collision.gameObject.CompareTag("Enemy") && primaryAttacking) {
-            Debug.Log("WHO " + collision);
+        if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 10f) {
             // Possibly add stuff to make the robot explode into pieces and then disappear later.
             collision.gameObject.GetComponentInChildren<MeshRenderer>().material = deadRobotMaterial;
             //enemyRenderer.GetComponent<MeshRenderer>().material = deadRobotMaterial;

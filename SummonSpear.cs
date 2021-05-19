@@ -43,6 +43,10 @@ public class SummonSpear : MonoBehaviour
 
     // hammerAirControlVariables
     [SerializeField] Transform airControlDesiredPos;
+    public bool airControlling = false;
+    bool airControlEnabled = false;
+    float airControlIdleTime = 0f;
+    public float desiredDistanceFromPlayer = 0f;
 
     // Start is called before the first frame update
     void Start() {
@@ -52,12 +56,12 @@ public class SummonSpear : MonoBehaviour
     // Update is called once per frame.
     void Update() {
         // if q is pressed and the player is holding an item and not picking up an item, do this.
-        if (Input.GetKeyDown("q") && holdingItem && !pickingUpItem) {
+        if (Input.GetKeyDown("q") && holdingItem && !pickingUpItem /*&& !airControlling()*/) {
             DropItem();
         }
 
         // If the right mouse button is pressed and the player is not holding or picking up an item, do this.
-        if (Input.GetMouseButtonDown(1) && !holdingItem && !pickingUpItem) {
+        if (Input.GetMouseButtonDown(1) && !holdingItem) {
             PickUpItem();
         }
 
@@ -66,17 +70,34 @@ public class SummonSpear : MonoBehaviour
             HoldItem();
         }
 
-        if (Input.GetKey("f") && canFly()) {
-            flyWithHammer();
+        /* AIR CONTROL (doesn't feel right so I disabled it) *//*
+        if (Input.GetKey("f") && !holdingItem) {
+            FlyWithHammer();
         }
-        bool canFly() {
-            if (!holdingItem) {
+        bool airControlling() {
+            if (Input.GetMouseButton(0) && !holdingItem && !pickingUpItem)
                 return true;
-            }
-            else {
+            else
                 return false;
-            }
         }
+
+        desiredDistanceFromPlayer = Vector3.Distance(airControlDesiredPos.transform.position, player.transform.position);
+        if (Input.GetKey("v")) {
+            desiredDistanceFromPlayer += 0.04f;
+        }
+        else if (Input.GetKey("c")) {
+            desiredDistanceFromPlayer -= 0.04f;
+        }
+        airControlDesiredPos.transform.localPosition = new Vector3(0, 0, desiredDistanceFromPlayer);
+
+        if (airControlling()) {
+            HammerAirControl();
+        } else if (!airControlling() && airControlEnabled && airControlIdleTime < 2f) {
+            airControlIdleTime += Time.deltaTime;
+        } else if (airControlIdleTime > 2f && !gameObject.GetComponent<SummonSpear>().pickingUpItem && !gameObject.GetComponent<SummonSpear>().holdingItem) {
+            Debug.Log("Disable air control");
+            DisableAirControl();
+        }*/
     }
 
     // This is run constantly from the frame after the player summons their weapon until they stop holding it.
@@ -181,8 +202,8 @@ public class SummonSpear : MonoBehaviour
         // Set spear as child of the player's parent.
         transform.parent = player.transform.parent;
     }
-    void flyWithHammer() {
-        spearTargetPos = player.transform.position;
+    void FlyWithHammer() {
+        Vector3 spearTargetPos = player.transform.position;
         spearCurrentPos = spear.transform.position;
 
         Vector3 spearCurrentVel = spearRigidbody.velocity;
@@ -194,5 +215,35 @@ public class SummonSpear : MonoBehaviour
         spear.LookAt(airControlDesiredPos);
         // Fix weird rotation problem.
         transform.rotation *= Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+    }
+    void HammerAirControl() {
+        Vector3 spearTargetPos = airControlDesiredPos.transform.position;
+        spearCurrentPos = spear.transform.position;
+
+        Vector3 spearCurrentVel = spearRigidbody.velocity;
+        float spearSmoothTime = 0.01f;
+        float spearMaxVelocity = 60f;
+        if (Vector3.Distance(spearCurrentPos, player.transform.position) > 3f) {
+            airControlEnabled = true;
+            // Turn off gravity
+            spearRigidbody.useGravity = false;
+            // Use the SmoothDamp method to move the spear towards the target position smoothly. Should probably be using addForce or some other force method.
+            spear.transform.position = Vector3.SmoothDamp(spearCurrentPos, spearTargetPos, ref spearCurrentVel, spearSmoothTime, spearMaxVelocity);
+            // Snappy prototyping rotation.
+            spear.LookAt(airControlDesiredPos);
+            // Fix weird rotation problem.
+            transform.rotation *= Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+        }
+        else {
+            airControlIdleTime += Time.deltaTime;
+            if (airControlIdleTime > 2f && !gameObject.GetComponent<SummonSpear>().pickingUpItem && !gameObject.GetComponent<SummonSpear>().holdingItem) {
+                DisableAirControl();
+            }
+        }
+    }
+    void DisableAirControl() {
+        airControlIdleTime = 0f;
+        // Turn on gravity.
+        spearRigidbody.useGravity = true;
     }
 }
