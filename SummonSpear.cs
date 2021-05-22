@@ -32,7 +32,7 @@ public class SummonSpear : MonoBehaviour
     // SmoothDamp-related variables
     Vector3 spearCurrentPos = new Vector3();
     Vector3 spearOldPos = new Vector3();
-    float smoothTimeChange = 0.005f;
+    //float smoothTimeChange = 0.005f;
 
     // Vector3 spearOlderPos = new Vector3();
     public float rotationSpeed = 1f;
@@ -44,7 +44,7 @@ public class SummonSpear : MonoBehaviour
     // hammerAirControlVariables
     [SerializeField] Transform airControlDesiredPos;
     public bool airControlling = false;
-    bool airControlEnabled = false;
+    //bool airControlEnabled = false;
     float airControlIdleTime = 0f;
     public float desiredDistanceFromPlayer = 0f;
 
@@ -224,7 +224,7 @@ public class SummonSpear : MonoBehaviour
         float spearSmoothTime = 0.01f;
         float spearMaxVelocity = 60f;
         if (Vector3.Distance(spearCurrentPos, player.transform.position) > 3f) {
-            airControlEnabled = true;
+            //airControlEnabled = true;
             // Turn off gravity
             spearRigidbody.useGravity = false;
             // Use the SmoothDamp method to move the spear towards the target position smoothly. Should probably be using addForce or some other force method.

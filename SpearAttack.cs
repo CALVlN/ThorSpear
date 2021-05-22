@@ -19,13 +19,13 @@ public class SpearAttack : MonoBehaviour {
     // float weaponDamage = 10f;
     bool primaryAttacking = false;
     float primaryAttackingTime = 0f;
-    bool addDrag = false;
-    float dragTime = 0f;
+    //bool addDrag = false;
+    //float dragTime = 0f;
 
     // Rotation related variables.
-    Vector3 spearCurrentPos = new Vector3();
+    /*Vector3 spearCurrentPos = new Vector3();
     Vector3 spearTargetPos = new Vector3();
-    Vector3 spearOldPos = new Vector3();
+    Vector3 spearOldPos = new Vector3();*/
 
     // Start is called before the first frame update
     void Start() {
@@ -35,10 +35,9 @@ public class SpearAttack : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         if (Input.GetMouseButtonDown(0) && CanAttack()) {
-            primaryAttacking = true;
             PrimaryAttack();
         }
-        if (primaryAttacking == true) {
+        if (primaryAttacking) {
             primaryAttackingTime += Time.deltaTime;
 
             if (primaryAttackingTime >= 1f && !gameObject.GetComponent<SummonSpear>().pickingUpItem && !gameObject.GetComponent<SummonSpear>().holdingItem) {
@@ -89,10 +88,7 @@ public class SpearAttack : MonoBehaviour {
         bool airControlling = gameObject.GetComponent<SummonSpear>().airControlling;
 
         // If holdingItem and !pickingUpItem from SpearPickup.cs, and !attacking from this script, return true. Else, return false.
-        if (holdingItem && !pickingUpItem && !primaryAttacking && !airControlling)
-            return true;
-        else
-            return false;
+        return (holdingItem && !pickingUpItem && !primaryAttacking && !airControlling);
     }
     private void OnCollisionEnter(Collision collision) {
         if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 10f) {
@@ -104,11 +100,12 @@ public class SpearAttack : MonoBehaviour {
         }
     }
     private void OnTriggerEnter(Collider other) {
-        
+
     }
 
     // Attack and do 10 damage to all enemies hit by the hammer.
     void PrimaryAttack() {
+        primaryAttacking = true;
         float throwStrength = gameObject.GetComponent<SummonSpear>().throwStrength;
         gameObject.GetComponent<SummonSpear>().holdingItem = false;
         gameObject.GetComponent<SummonSpear>().pickingUpItem = false;
