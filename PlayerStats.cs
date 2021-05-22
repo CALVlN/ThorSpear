@@ -18,11 +18,10 @@ public class PlayerStats : MonoBehaviour
     {
         if (hitByTurret) {
             health -= 10;
-            Debug.Log(health);
             hitByTurret = false;
         }
         if (health <= 0) {
-            Debug.Log("Game Over (at least it should be)");
+            //Debug.Log("Game Over (at least it should be)");
         }
     }
 }

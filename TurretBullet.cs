@@ -15,6 +15,8 @@ public class TurretBullet : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        // distanceIsShort = (Vector3.Distance(transform.position, turret.position) < 1f) ? distanceIsShort : !distanceIsShort;
+
         // Destroy bullet if it gets 40 units away from the turret.
         if (Vector3.Distance(transform.position, turret.position) > 40f)
             Destroy(gameObject);

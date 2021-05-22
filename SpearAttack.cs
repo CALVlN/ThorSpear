@@ -109,6 +109,7 @@ public class SpearAttack : MonoBehaviour {
         float throwStrength = gameObject.GetComponent<SummonSpear>().throwStrength;
         gameObject.GetComponent<SummonSpear>().holdingItem = false;
         gameObject.GetComponent<SummonSpear>().pickingUpItem = false;
+        gameObject.GetComponent<SummonSpear>().startDistCalled = false;
 
         // Set weapon head and shaft colliders to no longer be triggers so they interact with other colliders.
         spearShaft.isTrigger = false;

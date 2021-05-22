@@ -19,7 +19,7 @@ public class SummonSpear : MonoBehaviour
     Vector3 playerVelocity = new Vector3();
     public PlayerController playerController;
 
-    // Lerp variables
+    // Lerp and Slerp variables
     public Vector3 spearGroundPos = new Vector3();
     public Vector3 spearTargetPos = new Vector3();
     public Quaternion spearGroundRot = new Quaternion();
@@ -28,11 +28,13 @@ public class SummonSpear : MonoBehaviour
     /*double itemPickupStartTime = 0;
     double itemArrivesAfter = 0;
     double itemTravelTime = 0;*/
+    float startDist = 0f;
+    public bool startDistCalled = false;
 
     // SmoothDamp-related variables
     Vector3 spearCurrentPos = new Vector3();
     Vector3 spearOldPos = new Vector3();
-    //float smoothTimeChange = 0.005f;
+    float spearSmoothTime = 0.02f;
 
     // Vector3 spearOlderPos = new Vector3();
     public float rotationSpeed = 1f;
@@ -60,8 +62,8 @@ public class SummonSpear : MonoBehaviour
             DropItem();
         }
 
-        // If the right mouse button is pressed and the player is not holding or picking up an item, do this.
-        if (Input.GetMouseButtonDown(1) && !holdingItem) {
+        // If the right mouse button is pressed and the player is not holding or picking up an item and the weapon is over 1 unit from the player, run PickUpItem().
+        if (Input.GetMouseButtonDown(1) && !holdingItem && !pickingUpItem && Vector3.Distance(spear.transform.position, player.transform.position) > 1f) {
             PickUpItem();
         }
 
@@ -114,13 +116,19 @@ public class SummonSpear : MonoBehaviour
 
             spearCurrentPos = spear.transform.position;
             Vector3 spearCurrentVel = spearRigidbody.velocity;
-            float spearSmoothTime = 0.01f;
             float spearMaxVelocity = 60f;
+            float smoothTimeChange = 0.0002f;
 
-            // If the weapon's distance to the player's hand is less than 0.12f, teleport to target position and set pickingUpItem to false.
-            if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 0.12f) {
+            // If the weapon's distance to the player's hand is less than 0.2f, teleport to target position and set pickingUpItem to false.
+            if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 0.2f) {
                 pickingUpItem = false;
+                spearSmoothTime = 0.02f;
                 spear.transform.position = spearTargetPos;
+                spear.rotation = spearTargetRot;
+            }
+
+            if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 1f && spearSmoothTime > 0.002) {
+                spearSmoothTime -= smoothTimeChange;
             }
 
             // Use the SmoothDamp method to move the spear towards the target position smoothly.
@@ -135,19 +143,18 @@ public class SummonSpear : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(spearCurrentPos, spearTargetPos);
         if (distanceToPlayer < 12f) {
-            // Increases percentOrSmthn over time.
-            if (timer >= delayAmount && distanceToPlayer >= 0) {
-                timer = 0f;
-                percentOrSmthn += 0.01f;
-            }
-            // Use the Slerp method to rotate the spear towards the target rotation until percentOrSmthn reaches 100%. Needs to be redone.
-            spear.transform.rotation = Quaternion.Slerp(spear.rotation, spearTargetRot, percentOrSmthn);
-        }
+            float distToPlayer = Vector3.Distance(spear.transform.position, weaponTargetPosition.transform.position);
 
-        // If the item has gotten to the destination (player), do this.
-        if (spearCurrentPos == spearTargetPos) {
-            pickingUpItem = false;
-            spear.rotation = spearTargetRot;
+            if (!startDistCalled) {
+                startDist = distanceToPlayer;
+                startDistCalled = true;
+            }
+
+            float slerpPercent = Mathf.InverseLerp(startDist, 0.16f, distToPlayer);
+            Debug.Log(slerpPercent);
+
+            // Use the Slerp method to rotate the spear towards the target rotation until percentOrSmthn reaches 100%.
+            spear.rotation = Quaternion.Slerp(spear.rotation, spearTargetRot, slerpPercent);
         }
 
         if (!pickingUpItem && holdingItem) {
@@ -177,6 +184,7 @@ public class SummonSpear : MonoBehaviour
     void DropItem() {
         holdingItem = false;
         pickingUpItem = false;
+        startDistCalled = false;
 
         // Turn on gravity.
         spearRigidbody.useGravity = true;
@@ -190,7 +198,6 @@ public class SummonSpear : MonoBehaviour
 
         /* ADDING VELOCITY TO DROPPED WEAPON - maybe use a function here?*/
         playerVelocity = playerController.velocity;
-        throwStrength = 70;
 
         // Add player speed to item.
         spearRigidbody.velocity = playerVelocity;
