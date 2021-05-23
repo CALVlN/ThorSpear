@@ -99,7 +99,7 @@ public class SpearAttack : MonoBehaviour {
         if (holdFor > 0f) {
             holdFor += Time.deltaTime;
             if (holdFor > 0.5f) {
-                attackCooldown += Time.deltaTime;
+                attackCooldown = 0.01f;
                 holdFor = 0f;
             }
         }
@@ -114,7 +114,7 @@ public class SpearAttack : MonoBehaviour {
 
             if (lerpPercent > 0.9999f && !hasHeld || attackCooldown > 0f && !hasHeld) {
                 hasHeld = true;
-                holdFor += Time.deltaTime;
+                holdFor = 0.01f;
             }
             if (attackCooldown > 0f) { attackCooldown += Time.deltaTime; }
             if (attackCooldown > 2f) {
