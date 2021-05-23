@@ -57,21 +57,22 @@ public class SummonSpear : MonoBehaviour
 
     // Update is called once per frame.
     void Update() {
-        // if q is pressed and the player is holding an item and not picking up an item, do this.
-        if (Input.GetKeyDown("q") && holdingItem && !pickingUpItem /*&& !airControlling()*/) {
-            DropItem();
-        }
+        if (!PauseMenu.isPaused) {
+            // if q is pressed and the player is holding an item and not picking up an item, do this.
+            if (Input.GetKeyDown("q") && holdingItem && !pickingUpItem /*&& !airControlling()*/) {
+                DropItem();
+            }
 
-        // If the right mouse button is pressed and the player is not holding or picking up an item and the weapon is over 1 unit from the player, run PickUpItem().
-        if (Input.GetMouseButtonDown(1) && !holdingItem && !pickingUpItem && Vector3.Distance(spear.transform.position, player.transform.position) > 1f) {
-            PickUpItem();
-        }
+            // If the right mouse button is pressed and the player is not holding or picking up an item and the weapon is over 1 unit from the player, run PickUpItem().
+            if (Input.GetMouseButtonDown(1) && !holdingItem && !pickingUpItem && Vector3.Distance(spear.transform.position, player.transform.position) > 1f) {
+                PickUpItem();
+            }
 
-        // If the variable holdingItem is true, then hold the weapon.
-        if (holdingItem) {
-            HoldItem();
+            // If the variable holdingItem is true, then hold the weapon.
+            if (holdingItem) {
+                HoldItem();
+            }
         }
-
         /* AIR CONTROL (doesn't feel right so I disabled it) *//*
         if (Input.GetKey("f") && !holdingItem) {
             FlyWithHammer();

@@ -45,8 +45,10 @@ public class SpearAttack : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (Input.GetMouseButtonDown(0) && CanAttack() || initiateAttack) {
-            PrimaryAttack();
+        if (!PauseMenu.isPaused) {
+            if (Input.GetMouseButtonDown(0) && CanAttack() && !initiateAttack || initiateAttack) {
+                PrimaryAttack();
+            }
         }
         if (primaryAttacking) {
             primaryAttackingTime += Time.deltaTime;
@@ -96,7 +98,7 @@ public class SpearAttack : MonoBehaviour {
 
         if (holdFor > 0f) {
             holdFor += Time.deltaTime;
-            if (holdFor > 1f) {
+            if (holdFor > 0.5f) {
                 attackCooldown += Time.deltaTime;
                 holdFor = 0f;
             }
@@ -104,7 +106,7 @@ public class SpearAttack : MonoBehaviour {
 
         if (!readyToThrow && holdFor == 0f) {
             lerpPercent = timeElapsed / lerpDuration; // float t = time / duration 
-            lerpPercent = Mathf.Sin(lerpPercent * Mathf.PI * 0.5f);
+            lerpPercent = lerpPercent * lerpPercent * (3f - 2f * lerpPercent);
 
 
             transform.position = Vector3.Lerp(startPos, endPos, lerpPercent);
@@ -119,14 +121,19 @@ public class SpearAttack : MonoBehaviour {
                 timeElapsed = 0f;
                 attackCooldown = 0f;
                 hasHeld = false;
-                Debug.Log("ran");
                 initiateAttack = false;
             }
+        }
+
+        if (!PauseMenu.isPaused) {
             if (lerpPercent > 0.2f && Input.GetMouseButtonDown(0)) {
                 throwMultiplier = lerpPercent;
+                Debug.Log("ran");
                 readyToThrow = true;
+                holdFor = 0f;
             }
         }
+        
         if (readyToThrow) {
             transform.rotation = weaponTargetPosition.rotation;
             primaryAttacking = true;
@@ -150,7 +157,7 @@ public class SpearAttack : MonoBehaviour {
             // Add extra veocity.
             Vector3 directionVector = (aimTarget.position - transform.position).normalized;
             spearRigidbody.AddForce(throwStrength * 1.5f * directionVector, ForceMode.Impulse);
-            spearRigidbody.AddForce(-throwStrength / 30 * playerCamera.transform.up, ForceMode.Impulse);
+            spearRigidbody.AddForce(-throwStrength / 10 * playerCamera.transform.up, ForceMode.Impulse);
             // Set spear as child of the player's parent.
             transform.parent = player.transform.parent;
             readyToThrow = false;

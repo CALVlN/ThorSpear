@@ -2,14 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
-{
+public class PlayerController : MonoBehaviour {
     [SerializeField] Transform playerCamera = null;
     [SerializeField] float mouseSensitivity = 3.5f;
     [SerializeField] float walkSpeed = 6f;
     [SerializeField] float gravity = -13f;
-    [SerializeField][Range(0f, 0.5f)] float moveSmoothTime = 0.3f;
-    [SerializeField][Range(0f, 0.5f)] float mouseSmoothTime = 0.03f;
+    [SerializeField] [Range(0f, 0.5f)] float moveSmoothTime = 0.3f;
+    [SerializeField] [Range(0f, 0.5f)] float mouseSmoothTime = 0.03f;
     [SerializeField] float jumpForce = 10f;
 
     [SerializeField] bool lockCursor = true;
@@ -29,14 +28,12 @@ public class PlayerController : MonoBehaviour
 
     void Start() {
         controller = GetComponent<CharacterController>();
-        if (lockCursor) {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
     }
     void Update() {
-        UpdateMouseLook();
-        UpdateMovement();
+        if (!PauseMenu.isPaused) {
+            UpdateMouseLook();
+            UpdateMovement();
+        }
     }
 
     void UpdateMouseLook() {
@@ -89,14 +86,14 @@ public class PlayerController : MonoBehaviour
 
 
         // Does the ray intersect any objects?
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, 1.2f))
-        {
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, 1.2f)) {
             // If the raycast hits something, draw a red line from the bottom of the player to where the raycast hit. For this to work,
             // the PlayerIsGrounded() function needs to be called in Update()
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * hit.distance, Color.red);
 
             return true;
-        } else {
+        }
+        else {
             // If the raycast doesn't hit something, draw a white line from the bottom of the player to the maximum raycast distance.
             // For this to work, the PlayerIsGrounded() function needs to be called in Update()
             Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * 1.2f, Color.white);
