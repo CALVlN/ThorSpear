@@ -37,8 +37,6 @@ public class PlayerController : MonoBehaviour
     void Update() {
         UpdateMouseLook();
         UpdateMovement();
-        // Debug.Log(PlayerIsGrounded());
-        // Debug.Log("Y velocity " + velocityY);
     }
 
     void UpdateMouseLook() {

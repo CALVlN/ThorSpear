@@ -5,6 +5,9 @@ using UnityEngine;
 public class SpearAttack : MonoBehaviour {
     [SerializeField] Transform player;
     [SerializeField] Transform playerCamera;
+    [SerializeField] Transform weaponTargetPosition;
+    [SerializeField] Transform aimTarget;
+    [SerializeField] Transform overShoulderTarget;
     //[SerializeField] Transform weaponTargetPosition;
     [SerializeField] Transform spear;
     [SerializeField] Rigidbody spearRigidbody;
@@ -18,6 +21,14 @@ public class SpearAttack : MonoBehaviour {
 
     // float weaponDamage = 10f;
     bool primaryAttacking = false;
+    float timeElapsed = 0f;
+    bool readyToThrow = false;
+    bool initiateAttack = false;
+    float lerpPercent = 0f;
+    float attackCooldown;
+    float throwMultiplier = 0f;
+    float holdFor = 0f;
+    bool hasHeld = false;
     float primaryAttackingTime = 0f;
     //bool addDrag = false;
     //float dragTime = 0f;
@@ -29,12 +40,12 @@ public class SpearAttack : MonoBehaviour {
 
     // Start is called before the first frame update
     void Start() {
-
+        Physics.IgnoreCollision(player.GetComponent<Collider>(), GetComponent<Collider>());
     }
 
     // Update is called once per frame
     void Update() {
-        if (Input.GetMouseButtonDown(0) && CanAttack()) {
+        if (Input.GetMouseButtonDown(0) && CanAttack() || initiateAttack) {
             PrimaryAttack();
         }
         if (primaryAttacking) {
@@ -46,40 +57,12 @@ public class SpearAttack : MonoBehaviour {
 
                 // Turn on gravity.
                 spearRigidbody.useGravity = true;
-
-                // Temporarily add drag to the spear to slow it down.
-                //addDrag = true;
             }
             else if (gameObject.GetComponent<SummonSpear>().pickingUpItem) {
                 primaryAttacking = false;
                 primaryAttackingTime = 0f;
             }
         }
-        /*if (addDrag) {
-            primaryAttacking = false;
-            primaryAttackingTime = 0f;
-            dragTime += Time.deltaTime;
-            //Debug.Log(dragTime);
-            spearRigidbody.drag = 2f;
-            spearRigidbody.angularDrag = 2f;
-
-            //Debug.Log("Add drag");
-
-            if (spearRigidbody.useGravity && addDrag) {
-                // Turn off gravity.
-                spearRigidbody.useGravity = false;
-            }
-
-            if (dragTime >= 1) {
-                Debug.Log("Disable drag.");
-                spearRigidbody.drag = 0f;
-                spearRigidbody.angularDrag = 0.05f;
-                addDrag = false;
-                dragTime = 0f;
-                // Turn on gravity.
-                spearRigidbody.useGravity = true;
-            }
-        }*/
     }
     // Return true if below conditions are met, in which case attacking should be allowed.
     bool CanAttack() {
@@ -87,8 +70,8 @@ public class SpearAttack : MonoBehaviour {
         bool pickingUpItem = gameObject.GetComponent<SummonSpear>().pickingUpItem;
         bool airControlling = gameObject.GetComponent<SummonSpear>().airControlling;
 
-        // If holdingItem and !pickingUpItem from SpearPickup.cs, and !attacking from this script, return true. Else, return false.
-        return (holdingItem && !pickingUpItem && !primaryAttacking && !airControlling);
+        // If holdingItem and !pickingUpItem from SpearPickup.cs, and !attacking and !initiateAttack from this script, return true. Else, return false.
+        return (holdingItem && !pickingUpItem && !primaryAttacking && !airControlling && !initiateAttack);
     }
     private void OnCollisionEnter(Collision collision) {
         if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 10f) {
@@ -105,30 +88,75 @@ public class SpearAttack : MonoBehaviour {
 
     // Attack and do 10 damage to all enemies hit by the hammer.
     void PrimaryAttack() {
-        primaryAttacking = true;
-        float throwStrength = gameObject.GetComponent<SummonSpear>().throwStrength;
-        gameObject.GetComponent<SummonSpear>().holdingItem = false;
-        gameObject.GetComponent<SummonSpear>().pickingUpItem = false;
-        gameObject.GetComponent<SummonSpear>().startDistCalled = false;
+        initiateAttack = true;
+        Vector3 startPos = weaponTargetPosition.position;
+        Vector3 endPos = overShoulderTarget.position;
 
-        // Set weapon head and shaft colliders to no longer be triggers so they interact with other colliders.
-        spearShaft.isTrigger = false;
-        spearHammerHead.isTrigger = false;
+        float lerpDuration = 1;
 
-        // Reset percentOrSmth to zero.
-        gameObject.GetComponent<SummonSpear>().percentOrSmthn = 0f;
+        if (holdFor > 0f) {
+            holdFor += Time.deltaTime;
+            if (holdFor > 1f) {
+                attackCooldown += Time.deltaTime;
+                holdFor = 0f;
+            }
+        }
 
-        /* ADDING VELOCITY TO DROPPED WEAPON - maybe use a function here?*/
-        Vector3 playerVelocity = gameObject.GetComponent<SummonSpear>().playerController.velocity;
+        if (!readyToThrow && holdFor == 0f) {
+            lerpPercent = timeElapsed / lerpDuration; // float t = time / duration 
+            lerpPercent = Mathf.Sin(lerpPercent * Mathf.PI * 0.5f);
 
-        // Add player speed to item.
-        spearRigidbody.velocity = playerVelocity;
 
-        // Add extra veocity in the direction the camera is facing.
-        spearRigidbody.AddForce(throwStrength * 2 * playerCamera.transform.forward, ForceMode.Impulse);
-        spearRigidbody.AddForce(throwStrength / 30 * playerCamera.transform.up, ForceMode.Impulse);
+            transform.position = Vector3.Lerp(startPos, endPos, lerpPercent);
+            timeElapsed += Time.deltaTime;
 
-        // Set spear as child of the player's parent.
-        transform.parent = player.transform.parent;
+            if (lerpPercent > 0.9999f && !hasHeld || attackCooldown > 0f && !hasHeld) {
+                hasHeld = true;
+                holdFor += Time.deltaTime;
+            }
+            if (attackCooldown > 0f) { attackCooldown += Time.deltaTime; }
+            if (attackCooldown > 2f) {
+                timeElapsed = 0f;
+                attackCooldown = 0f;
+                hasHeld = false;
+                Debug.Log("ran");
+                initiateAttack = false;
+            }
+            if (lerpPercent > 0.2f && Input.GetMouseButtonDown(0)) {
+                throwMultiplier = lerpPercent;
+                readyToThrow = true;
+            }
+        }
+        if (readyToThrow) {
+            transform.rotation = weaponTargetPosition.rotation;
+            primaryAttacking = true;
+            float throwStrength = gameObject.GetComponent<SummonSpear>().throwStrength * lerpPercent;
+            gameObject.GetComponent<SummonSpear>().holdingItem = false;
+            gameObject.GetComponent<SummonSpear>().pickingUpItem = false;
+            gameObject.GetComponent<SummonSpear>().startDistCalled = false;
+
+            throwStrength = throwStrength * throwMultiplier;
+
+            // Set weapon head and shaft colliders to no longer be triggers so they interact with other colliders.
+            spearShaft.isTrigger = false;
+            spearHammerHead.isTrigger = false;
+            // Reset percentOrSmth to zero.
+            gameObject.GetComponent<SummonSpear>().percentOrSmthn = 0f;
+
+            /* ADDING VELOCITY TO DROPPED WEAPON - maybe use a function here?*/
+            Vector3 playerVelocity = gameObject.GetComponent<SummonSpear>().playerController.velocity;
+            // Add player speed to weapon.
+            //spearRigidbody.velocity = playerVelocity;
+            // Add extra veocity.
+            Vector3 directionVector = (aimTarget.position - transform.position).normalized;
+            spearRigidbody.AddForce(throwStrength * 1.5f * directionVector, ForceMode.Impulse);
+            spearRigidbody.AddForce(-throwStrength / 30 * playerCamera.transform.up, ForceMode.Impulse);
+            // Set spear as child of the player's parent.
+            transform.parent = player.transform.parent;
+            readyToThrow = false;
+            initiateAttack = false;
+            hasHeld = false;
+            timeElapsed = 0f;
+        }
     }
 }

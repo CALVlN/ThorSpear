@@ -151,7 +151,7 @@ public class SummonSpear : MonoBehaviour
             }
 
             float slerpPercent = Mathf.InverseLerp(startDist, 0.16f, distToPlayer);
-            Debug.Log(slerpPercent);
+            //Debug.Log(slerpPercent);
 
             // Use the Slerp method to rotate the spear towards the target rotation until percentOrSmthn reaches 100%.
             spear.rotation = Quaternion.Slerp(spear.rotation, spearTargetRot, slerpPercent);
