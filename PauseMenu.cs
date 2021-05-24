@@ -21,28 +21,30 @@ public class PauseMenu : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.Escape)) {
             if (isPaused) {
                 ResumeGame();
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
             }
             else {
                 PauseGame();
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
             }
         }
     }
     public void PauseGame() {
+        isPaused = true;
         pauseMenu.SetActive(true);
         Time.timeScale = 0;
-        isPaused = true;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
     public void ResumeGame() {
+        isPaused = false;
         pauseMenu.SetActive(false);
         Time.timeScale = 1;
-        isPaused = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        Debug.Log("ran");
     }
-    public void OpenControlsMenu() {
-
+    public void RestartGame() {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Debug.Log("ran");
     }
     public void QuitGame() {
         Application.Quit();

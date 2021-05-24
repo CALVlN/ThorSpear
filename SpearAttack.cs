@@ -19,14 +19,22 @@ public class SpearAttack : MonoBehaviour {
     [SerializeField] Material deadRobotMaterial;
     [SerializeField] Transform robotPrefab;
 
+    public CooldownController cooldownBar;
+    public ChargeBarController chargeBar;
+
+    // Turret stuff
+    [SerializeField] Rigidbody Turret;
+    [SerializeField] Rigidbody PieceOfTurret;
+    public TurretAttack turretAttackScript;
+    public bool turretAlive = true;
+
     // float weaponDamage = 10f;
     bool primaryAttacking = false;
     float timeElapsed = 0f;
     bool readyToThrow = false;
     bool initiateAttack = false;
     float lerpPercent = 0f;
-    float attackCooldown;
-    float throwMultiplier = 0f;
+    public float attackCooldown = 0f;
     float holdFor = 0f;
     bool hasHeld = false;
     float primaryAttackingTime = 0f;
@@ -40,6 +48,7 @@ public class SpearAttack : MonoBehaviour {
 
     // Start is called before the first frame update
     void Start() {
+        // I think this line might not work.
         Physics.IgnoreCollision(player.GetComponent<Collider>(), GetComponent<Collider>());
     }
 
@@ -83,9 +92,14 @@ public class SpearAttack : MonoBehaviour {
             collision.rigidbody.constraints = RigidbodyConstraints.None;
             Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
         }
-    }
-    private void OnTriggerEnter(Collider other) {
-
+        if (collision.gameObject.CompareTag("Turret") && collision.relativeVelocity.magnitude > 10f) {
+            var rigidbodies = Turret.GetComponentsInChildren<Rigidbody>();
+            PieceOfTurret.isKinematic = false;
+            for (int i = 0; i < rigidbodies.Length; i++) {
+                rigidbodies[i].isKinematic = false;
+            }
+            turretAlive = false;
+        }
     }
 
     // Attack and do 10 damage to all enemies hit by the hammer.
@@ -107,28 +121,30 @@ public class SpearAttack : MonoBehaviour {
         if (!readyToThrow && holdFor == 0f) {
             lerpPercent = timeElapsed / lerpDuration; // float t = time / duration 
             lerpPercent = lerpPercent * lerpPercent * (3f - 2f * lerpPercent);
-
+            chargeBar.SetCharge(lerpPercent);
 
             transform.position = Vector3.Lerp(startPos, endPos, lerpPercent);
             timeElapsed += Time.deltaTime;
 
-            if (lerpPercent > 0.9999f && !hasHeld || attackCooldown > 0f && !hasHeld) {
+            if (lerpPercent > 0.99f && !hasHeld || attackCooldown > 0f && !hasHeld) {
                 hasHeld = true;
                 holdFor = 0.01f;
             }
-            if (attackCooldown > 0f) { attackCooldown += Time.deltaTime; }
+            if (attackCooldown > 0f) {
+                attackCooldown += Time.deltaTime;
+                cooldownBar.SetCooldown(attackCooldown);
+            }
             if (attackCooldown > 2f) {
                 timeElapsed = 0f;
                 attackCooldown = 0f;
                 hasHeld = false;
                 initiateAttack = false;
+                cooldownBar.SetCooldown(attackCooldown);
             }
         }
 
         if (!PauseMenu.isPaused) {
-            if (lerpPercent > 0.2f && Input.GetMouseButtonDown(0)) {
-                throwMultiplier = lerpPercent;
-                Debug.Log("ran");
+            if (lerpPercent >= 0.0002f && Input.GetMouseButtonDown(0)) {
                 readyToThrow = true;
                 holdFor = 0f;
             }
@@ -142,7 +158,7 @@ public class SpearAttack : MonoBehaviour {
             gameObject.GetComponent<SummonSpear>().pickingUpItem = false;
             gameObject.GetComponent<SummonSpear>().startDistCalled = false;
 
-            throwStrength = throwStrength * throwMultiplier;
+            throwStrength = throwStrength * lerpPercent;
 
             // Set weapon head and shaft colliders to no longer be triggers so they interact with other colliders.
             spearShaft.isTrigger = false;
@@ -164,6 +180,9 @@ public class SpearAttack : MonoBehaviour {
             initiateAttack = false;
             hasHeld = false;
             timeElapsed = 0f;
+            attackCooldown = 0f;
+            cooldownBar.SetCooldown(attackCooldown);
+            chargeBar.SetCharge(-2f);
         }
     }
 }

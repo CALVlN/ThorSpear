@@ -6,8 +6,8 @@ public class TurretAttack : MonoBehaviour
 {
     [SerializeField] Transform player;
     [SerializeField] Transform turretHead;
-
     [SerializeField] Rigidbody bulletRB;
+    [SerializeField] GameObject spear;
 
     Vector3 targetPos = new Vector3();
     // Start is called before the first frame update
@@ -19,7 +19,12 @@ public class TurretAttack : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        Aim();
+        if (spear.GetComponent<SpearAttack>().turretAlive == true) {
+            Aim();
+        }
+        else if (spear.GetComponent<SpearAttack>().turretAlive == false) {
+            StopCoroutine("Fire");
+        }
     }
     void Aim() {
         targetPos = player.transform.position;
