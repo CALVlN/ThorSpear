@@ -7,6 +7,8 @@ public class ButtonAnimations : MonoBehaviour
     Vector3 buttonStartPos = new Vector3();
     Vector3 buttonDefaultPos = new Vector3();
     Vector3 desiredPos = new Vector3();
+    Vector3 oldPos = new Vector3();
+    Vector3 newPos = new Vector3();
     public float animationPercent;
     float lerpTimer = 0f;
     bool hoveringOverButton = false;
@@ -17,16 +19,17 @@ public class ButtonAnimations : MonoBehaviour
 
     public void OnHover() {
         buttonStartPos = transform.position;
-        desiredPos = buttonStartPos;
-        desiredPos.x = buttonStartPos.x + 30f;
+        desiredPos = buttonDefaultPos;
+        desiredPos.x = buttonDefaultPos.x - 20f;
         hoveringOverButton = true;
         lerpTimer = 0f;
 
+        StopCoroutine("ButtonDeselected");
         StartCoroutine("ButtonSelected");
     }
     IEnumerator ButtonSelected() {
-        float lerpDuration = 0.6f;
-        while (animationPercent < lerpDuration && hoveringOverButton) {
+        float lerpDuration = 1f;
+        while (lerpTimer < 1f && hoveringOverButton) {
 
             lerpTimer += Time.deltaTime;
 
@@ -48,16 +51,14 @@ public class ButtonAnimations : MonoBehaviour
         StartCoroutine("ButtonDeselected");
     }
     IEnumerator ButtonDeselected() {
-        float lerpDuration = 0.6f;
-        while (animationPercent > 0f && !hoveringOverButton) {
-
+        float lerpDuration = 1f;
+        while (lerpTimer < 1f && !hoveringOverButton) {
             lerpTimer += Time.deltaTime;
 
             animationPercent = lerpTimer / lerpDuration;
             animationPercent = Mathf.Sin(animationPercent * Mathf.PI * 0.5f);
 
             transform.position = Vector3.Lerp(buttonStartPos, desiredPos, animationPercent);
-            //Debug.Log(desiredPos);
 
             yield return null;
         }

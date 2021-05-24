@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour {
     [SerializeField] [Range(0f, 0.5f)] float moveSmoothTime = 0.3f;
     [SerializeField] [Range(0f, 0.5f)] float mouseSmoothTime = 0.03f;
     [SerializeField] float jumpForce = 10f;
+    [SerializeField] GameObject gameManager;
 
     [SerializeField] bool lockCursor = true;
 
@@ -30,6 +31,11 @@ public class PlayerController : MonoBehaviour {
         controller = GetComponent<CharacterController>();
     }
     void Update() {
+        if (mouseSensitivity != gameManager.GetComponent<PauseMenu>().mouseSensitivity) {
+            mouseSensitivity = gameManager.GetComponent<PauseMenu>().mouseSensitivity;
+            Debug.Log("mouseSensitivityChanged");
+        }
+
         if (!PauseMenu.isPaused) {
             UpdateMouseLook();
             UpdateMovement();

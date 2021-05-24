@@ -2,10 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PauseMenu : MonoBehaviour {
     public GameObject pauseMenu;
+    public GameObject optionsMenu;
     public static bool isPaused = false;
+    public static int currentQuality = 2;
+
+    /* OPTIONS MENU VARIABLES */
+    [SerializeField] Slider sensitivitySlider;
+    public float mouseSensitivity = 3f;
 
     // Start is called before the first frame update
     void Start() {
@@ -37,16 +44,60 @@ public class PauseMenu : MonoBehaviour {
     public void ResumeGame() {
         isPaused = false;
         pauseMenu.SetActive(false);
+        optionsMenu.SetActive(false);
         Time.timeScale = 1;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        Debug.Log("ran");
     }
     public void RestartGame() {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        Debug.Log("ran");
+        if (isPaused) {
+            isPaused = false;
+            Time.timeScale = 1;
+        }
     }
-    public void QuitGame() {
-        Application.Quit();
+    public void MainMenu() {
+        SceneManager.LoadScene("Main Menu");
+        // idk if this is needed. Probably not.
+        if (PauseMenu.isPaused) {
+            PauseMenu.isPaused = false;
+            Time.timeScale = 1;
+
+            currentQuality = QualitySettings.GetQualityLevel();
+            if (currentQuality < 3) {
+                QualitySettings.SetQualityLevel(2, true);
+            }
+            Debug.Log(QualitySettings.GetQualityLevel());
+        }
+    }
+
+    public void Options() {
+        pauseMenu.SetActive(false);
+        optionsMenu.SetActive(true);
+    }
+
+    /* OPTIONS MENU */
+    public void Back() {
+        optionsMenu.SetActive(false);
+        pauseMenu.SetActive(true);
+    }
+
+    public void MouseSensitivityChange() {
+        // Set mouse sensitivity.
+        mouseSensitivity = sensitivitySlider.value;
+    }
+    
+    /* GRAPHICS OPTIONS */
+    public void High() {
+        QualitySettings.SetQualityLevel(3, true);
+    }
+    public void Medium() {
+        QualitySettings.SetQualityLevel(2, true);
+    }
+    public void Low() {
+        QualitySettings.SetQualityLevel(1, true);
+    }
+    public void Why() {
+        QualitySettings.SetQualityLevel(0, true);
     }
 }
