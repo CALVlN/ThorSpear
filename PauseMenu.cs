@@ -67,7 +67,6 @@ public class PauseMenu : MonoBehaviour {
             if (currentQuality < 3) {
                 QualitySettings.SetQualityLevel(2, true);
             }
-            Debug.Log(QualitySettings.GetQualityLevel());
         }
     }
 

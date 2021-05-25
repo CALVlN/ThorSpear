@@ -73,34 +73,6 @@ public class SummonSpear : MonoBehaviour
                 HoldItem();
             }
         }
-        /* AIR CONTROL (doesn't feel right so I disabled it) *//*
-        if (Input.GetKey("f") && !holdingItem) {
-            FlyWithHammer();
-        }
-        bool airControlling() {
-            if (Input.GetMouseButton(0) && !holdingItem && !pickingUpItem)
-                return true;
-            else
-                return false;
-        }
-
-        desiredDistanceFromPlayer = Vector3.Distance(airControlDesiredPos.transform.position, player.transform.position);
-        if (Input.GetKey("v")) {
-            desiredDistanceFromPlayer += 0.04f;
-        }
-        else if (Input.GetKey("c")) {
-            desiredDistanceFromPlayer -= 0.04f;
-        }
-        airControlDesiredPos.transform.localPosition = new Vector3(0, 0, desiredDistanceFromPlayer);
-
-        if (airControlling()) {
-            HammerAirControl();
-        } else if (!airControlling() && airControlEnabled && airControlIdleTime < 2f) {
-            airControlIdleTime += Time.deltaTime;
-        } else if (airControlIdleTime > 2f && !gameObject.GetComponent<SummonSpear>().pickingUpItem && !gameObject.GetComponent<SummonSpear>().holdingItem) {
-            Debug.Log("Disable air control");
-            DisableAirControl();
-        }*/
     }
 
     // This is run constantly from the frame after the player summons their weapon until they stop holding it.
@@ -110,10 +82,6 @@ public class SummonSpear : MonoBehaviour
 
         // If the item is being picked up, do this.
         if (pickingUpItem == true) {
-            /* TODO
-             * Make weapon rotation work properly. Also make it aim in the direction of travel until just before it arrives.
-             * Make weapon travel faster at end of smoothdamp function. Currently even if it looks like it's in your hand, it technically isn't.
-            */
 
             spearCurrentPos = spear.transform.position;
             Vector3 spearCurrentVel = spearRigidbody.velocity;
@@ -177,10 +145,6 @@ public class SummonSpear : MonoBehaviour
         // Set weapon velocity and rotation to zero.
         spearRigidbody.velocity = Vector3.zero;
         spearRigidbody.angularVelocity = Vector3.zero;
-
-        // Set weapon head and shaft colliders to triggers so they don't interact with other colliders.
-        spearShaft.isTrigger = true;
-        spearHammerHead.isTrigger = true;
     }
     void DropItem() {
         holdingItem = false;

@@ -7,8 +7,6 @@ public class ButtonAnimations : MonoBehaviour
     Vector3 buttonStartPos = new Vector3();
     Vector3 buttonDefaultPos = new Vector3();
     Vector3 desiredPos = new Vector3();
-    Vector3 oldPos = new Vector3();
-    Vector3 newPos = new Vector3();
     public float animationPercent;
     float lerpTimer = 0f;
     bool hoveringOverButton = false;
@@ -30,7 +28,6 @@ public class ButtonAnimations : MonoBehaviour
     IEnumerator ButtonSelected() {
         float lerpDuration = 1f;
         while (lerpTimer < 1f && hoveringOverButton) {
-
             lerpTimer += Time.deltaTime;
 
             animationPercent = lerpTimer / lerpDuration;

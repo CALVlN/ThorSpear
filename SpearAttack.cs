@@ -85,14 +85,16 @@ public class SpearAttack : MonoBehaviour {
         return (holdingItem && !pickingUpItem && !primaryAttacking && !airControlling && !initiateAttack);
     }
     private void OnCollisionEnter(Collision collision) {
-        if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 10f) {
+        // Check if hammer velocity is fast enough and if it is then kill the enemy, or check if the player is picking up the hammer and kill the enemy no matter the velocity.
+        if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 20f || collision.gameObject.CompareTag("Enemy") && gameObject.GetComponent<SummonSpear>().pickingUpItem) {
             // Possibly add stuff to make the robot explode into pieces and then disappear later.
             collision.gameObject.GetComponentInChildren<MeshRenderer>().material = deadRobotMaterial;
             //enemyRenderer.GetComponent<MeshRenderer>().material = deadRobotMaterial;
             collision.rigidbody.constraints = RigidbodyConstraints.None;
             Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
         }
-        if (collision.gameObject.CompareTag("Turret") && collision.relativeVelocity.magnitude > 10f) {
+        // Check if hammer velocity is fast enough and if it is then kill the turret, or check if the player is picking up the hammer and kill the turret no matter the velocity.
+        if (collision.gameObject.CompareTag("Turret") && collision.relativeVelocity.magnitude > 20f || collision.gameObject.CompareTag("Turret") && gameObject.GetComponent<SummonSpear>().pickingUpItem) {
             var rigidbodies = Turret.GetComponentsInChildren<Rigidbody>();
             PieceOfTurret.isKinematic = false;
             for (int i = 0; i < rigidbodies.Length; i++) {
