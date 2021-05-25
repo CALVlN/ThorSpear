@@ -44,13 +44,9 @@ public class PlayerController : MonoBehaviour {
 
     void UpdateMouseLook() {
         Vector2 targetMouseDelta = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
-
         currentMouseDelta = Vector2.SmoothDamp(currentMouseDelta, targetMouseDelta, ref currentMouseDeltaVelocity, mouseSmoothTime);
-
         cameraPitch -= currentMouseDelta.y * mouseSensitivity;
-
         cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f);
-
         playerCamera.localEulerAngles = Vector3.right * cameraPitch;
 
         transform.Rotate(Vector3.up * currentMouseDelta.x * mouseSensitivity);
@@ -59,11 +55,10 @@ public class PlayerController : MonoBehaviour {
     void UpdateMovement() {
         Vector2 targetDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         targetDir.Normalize();
-
         currentDir = Vector2.SmoothDamp(currentDir, targetDir, ref currentDirVelocity, moveSmoothTime);
 
         // This really doesn't work properly at all but it doesn't not work anymore.
-        if ((controller.collisionFlags & CollisionFlags.Below) != 0 || (controller.collisionFlags & CollisionFlags.Above) != 0) {
+        if ((controller.collisionFlags & CollisionFlags.Below) != 0 || (controller.collisionFlags & CollisionFlags.Above) > 0) {
             velocityY = 0f;
         }
 

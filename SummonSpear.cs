@@ -12,28 +12,20 @@ public class SummonSpear : MonoBehaviour
 
     public bool holdingItem = false;
     public bool pickingUpItem = false;
-    float timer = 0f;
-    float delayAmount = 0f;
     public float throwStrength = 70f;
 
     Vector3 playerVelocity = new Vector3();
     public PlayerController playerController;
 
-    // Lerp and Slerp variables
+    // Slerp & Smoothdamp variables
     public Vector3 spearGroundPos = new Vector3();
     public Vector3 spearTargetPos = new Vector3();
     public Quaternion spearGroundRot = new Quaternion();
     public Quaternion spearTargetRot = new Quaternion();
     public float percentOrSmthn = 0f;
-    /*double itemPickupStartTime = 0;
-    double itemArrivesAfter = 0;
-    double itemTravelTime = 0;*/
     float startDist = 0f;
     public bool startDistCalled = false;
-
-    // SmoothDamp-related variables
     Vector3 spearCurrentPos = new Vector3();
-    Vector3 spearOldPos = new Vector3();
     float spearSmoothTime = 0.02f;
 
     // Vector3 spearOlderPos = new Vector3();
@@ -94,6 +86,10 @@ public class SummonSpear : MonoBehaviour
                 spearSmoothTime = 0.02f;
                 spear.transform.position = spearTargetPos;
                 spear.rotation = spearTargetRot;
+
+                // Set weapon to triggers. Might need to change this so the weapon only ignores the player's collider but nothing else.
+                spearShaft.isTrigger = true;
+                spearHammerHead.isTrigger = true;
             }
 
             if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 1f && spearSmoothTime > 0.002) {
@@ -107,7 +103,6 @@ public class SummonSpear : MonoBehaviour
             spear.LookAt(spearTargetPos);
             // Fix weird rotation problem.
             transform.rotation *= Quaternion.FromToRotation(Vector3.up, Vector3.forward);
-            spearOldPos = spear.transform.position;
         }
 
         float distanceToPlayer = Vector3.Distance(spearCurrentPos, spearTargetPos);

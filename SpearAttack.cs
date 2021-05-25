@@ -8,11 +8,9 @@ public class SpearAttack : MonoBehaviour {
     [SerializeField] Transform weaponTargetPosition;
     [SerializeField] Transform aimTarget;
     [SerializeField] Transform overShoulderTarget;
-    //[SerializeField] Transform weaponTargetPosition;
     [SerializeField] Transform spear;
     [SerializeField] Rigidbody spearRigidbody;
     [SerializeField] Rigidbody enemyRigidbody;
-    // Collider variables
     [SerializeField] Collider spearShaft;
     [SerializeField] Collider spearHammerHead;
     [SerializeField] Renderer enemyRenderer;
@@ -38,13 +36,6 @@ public class SpearAttack : MonoBehaviour {
     float holdFor = 0f;
     bool hasHeld = false;
     float primaryAttackingTime = 0f;
-    //bool addDrag = false;
-    //float dragTime = 0f;
-
-    // Rotation related variables.
-    /*Vector3 spearCurrentPos = new Vector3();
-    Vector3 spearTargetPos = new Vector3();
-    Vector3 spearOldPos = new Vector3();*/
 
     // Start is called before the first frame update
     void Start() {
@@ -55,7 +46,7 @@ public class SpearAttack : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         if (!PauseMenu.isPaused) {
-            if (Input.GetMouseButtonDown(0) && CanAttack() && !initiateAttack || initiateAttack) {
+            if (Input.GetMouseButtonDown(0) && CanAttack() || initiateAttack) {
                 PrimaryAttack();
             }
         }
@@ -103,8 +94,6 @@ public class SpearAttack : MonoBehaviour {
             turretAlive = false;
         }
     }
-
-    // Attack and do 10 damage to all enemies hit by the hammer.
     void PrimaryAttack() {
         initiateAttack = true;
         Vector3 startPos = weaponTargetPosition.position;
@@ -112,6 +101,7 @@ public class SpearAttack : MonoBehaviour {
 
         float lerpDuration = 1;
 
+        // I should probably put all these if statements in Coroutines.
         if (holdFor > 0f) {
             holdFor += Time.deltaTime;
             if (holdFor > 0.5f) {
@@ -121,7 +111,7 @@ public class SpearAttack : MonoBehaviour {
         }
 
         if (!readyToThrow && holdFor == 0f) {
-            lerpPercent = timeElapsed / lerpDuration; // float t = time / duration 
+            lerpPercent = timeElapsed / lerpDuration;
             lerpPercent = lerpPercent * lerpPercent * (3f - 2f * lerpPercent);
             chargeBar.SetCharge(lerpPercent);
 
@@ -162,13 +152,14 @@ public class SpearAttack : MonoBehaviour {
 
             throwStrength = throwStrength * lerpPercent;
 
-            // Set weapon head and shaft colliders to no longer be triggers so they interact with other colliders.
-            spearShaft.isTrigger = false;
-            spearHammerHead.isTrigger = false;
             // Reset percentOrSmth to zero.
             gameObject.GetComponent<SummonSpear>().percentOrSmthn = 0f;
 
-            /* ADDING VELOCITY TO DROPPED WEAPON - maybe use a function here?*/
+            // Set weapon to no longer be a trigger. It should probably never be a trigger in the first place.
+            spearShaft.isTrigger = false;
+            spearHammerHead.isTrigger = false;
+
+            /* ADDING VELOCITY TO DROPPED WEAPON? */
             Vector3 playerVelocity = gameObject.GetComponent<SummonSpear>().playerController.velocity;
             // Add player speed to weapon.
             //spearRigidbody.velocity = playerVelocity;
@@ -178,6 +169,7 @@ public class SpearAttack : MonoBehaviour {
             spearRigidbody.AddForce(-throwStrength / 10 * playerCamera.transform.up, ForceMode.Impulse);
             // Set spear as child of the player's parent.
             transform.parent = player.transform.parent;
+            
             readyToThrow = false;
             initiateAttack = false;
             hasHeld = false;

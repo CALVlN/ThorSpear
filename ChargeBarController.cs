@@ -22,7 +22,6 @@ public class ChargeBarController : MonoBehaviour
         else if (gameObject.GetComponent<CooldownController>().cooldownBarActive && chargeBarActive) {
             chargeBar.SetActive(false);
             chargeBarActive = false;
-            Debug.Log("ran");
         }
     }
 
