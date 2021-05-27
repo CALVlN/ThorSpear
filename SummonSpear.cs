@@ -64,6 +64,9 @@ public class SummonSpear : MonoBehaviour
             if (holdingItem) {
                 HoldItem();
             }
+            /*if (Input.GetKey("f") && !holdingItem && !pickingUpItem) {
+                FlyWithHammer();
+            }*/
         }
     }
 
@@ -80,16 +83,22 @@ public class SummonSpear : MonoBehaviour
             float spearMaxVelocity = 60f;
             float smoothTimeChange = 0.0002f;
 
-            // If the weapon's distance to the player's hand is less than 0.2f, teleport to target position and set pickingUpItem to false.
+            // If the weapon's distance to the player's hand is less than 0.2f, teleport to target position and do a bunch of other stuff.
             if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 0.2f) {
                 pickingUpItem = false;
-                spearSmoothTime = 0.02f;
-                spear.transform.position = spearTargetPos;
-                spear.rotation = spearTargetRot;
 
                 // Set weapon to triggers. Might need to change this so the weapon only ignores the player's collider but nothing else.
                 spearShaft.isTrigger = true;
                 spearHammerHead.isTrigger = true;
+
+                // Set spear as child of player.
+                transform.parent = player.transform;
+
+                spearSmoothTime = 0.02f;
+                spear.transform.position = spearTargetPos;
+                spear.rotation = spearTargetRot;
+                spearRigidbody.velocity = Vector3.zero;
+                spearRigidbody.angularVelocity = Vector3.zero;
             }
 
             if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 1f && spearSmoothTime > 0.002) {
@@ -119,11 +128,6 @@ public class SummonSpear : MonoBehaviour
 
             // Use the Slerp method to rotate the spear towards the target rotation until percentOrSmthn reaches 100%.
             spear.rotation = Quaternion.Slerp(spear.rotation, spearTargetRot, slerpPercent);
-        }
-
-        if (!pickingUpItem && holdingItem) {
-            // Set spear as child of player.
-            transform.parent = player.transform;
         }
     }
 

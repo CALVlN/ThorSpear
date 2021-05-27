@@ -34,10 +34,11 @@ public class TurretAttack : MonoBehaviour
         transform.rotation *= Quaternion.FromToRotation(Vector3.left, Vector3.back);
     }
     IEnumerator Fire() {
+        float bulletSpeed = 25f;
         for (; ; ) {
             Rigidbody bulletClone;
             bulletClone = Instantiate(bulletRB, transform.position, transform.rotation);
-            bulletClone.velocity = transform.TransformDirection(Vector3.right * 20);
+            bulletClone.velocity = transform.TransformDirection(Vector3.right * bulletSpeed);
             yield return new WaitForSeconds(1f);
         }
     }

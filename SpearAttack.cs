@@ -78,10 +78,14 @@ public class SpearAttack : MonoBehaviour {
     private void OnCollisionEnter(Collision collision) {
         // Check if hammer velocity is fast enough and if it is then kill the enemy, or check if the player is picking up the hammer and kill the enemy no matter the velocity.
         if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 20f || collision.gameObject.CompareTag("Enemy") && gameObject.GetComponent<SummonSpear>().pickingUpItem) {
+            // I don't think this actually sets the tag to "Dead Enemy", but it does what I want!
+            collision.gameObject.tag = "Dead Enemy";
+            
             // Possibly add stuff to make the robot explode into pieces and then disappear later.
             collision.gameObject.GetComponentInChildren<MeshRenderer>().material = deadRobotMaterial;
             //enemyRenderer.GetComponent<MeshRenderer>().material = deadRobotMaterial;
             collision.rigidbody.constraints = RigidbodyConstraints.None;
+            Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
             Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
         }
         // Check if hammer velocity is fast enough and if it is then kill the turret, or check if the player is picking up the hammer and kill the turret no matter the velocity.
@@ -156,6 +160,7 @@ public class SpearAttack : MonoBehaviour {
             gameObject.GetComponent<SummonSpear>().percentOrSmthn = 0f;
 
             // Set weapon to no longer be a trigger. It should probably never be a trigger in the first place.
+            // I need to fix the hammer colliding with the player here.
             spearShaft.isTrigger = false;
             spearHammerHead.isTrigger = false;
 

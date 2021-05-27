@@ -33,10 +33,9 @@ public class PlayerController : MonoBehaviour {
     void Update() {
         if (mouseSensitivity != gameManager.GetComponent<PauseMenu>().mouseSensitivity) {
             mouseSensitivity = gameManager.GetComponent<PauseMenu>().mouseSensitivity;
-            Debug.Log("mouseSensitivityChanged");
         }
 
-        if (!PauseMenu.isPaused) {
+        if ((!PauseMenu.isPaused) && (!PlayerStats.deathScreenActive)) {
             UpdateMouseLook();
             UpdateMovement();
         }
