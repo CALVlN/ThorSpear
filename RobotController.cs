@@ -23,8 +23,8 @@ public class RobotController : MonoBehaviour
         if (transform.position.y < -150f) {
             Destroy(gameObject);
         }
-        // If the enemy is not dead and two seconds has past since it was instantiated
-        if (gameObject.tag == "Enemy" && Time.timeSinceLevelLoad - timeSinceInstantiated > 2f && Vector3.Distance(transform.position, player.transform.position) < 10f && robotRB.velocity.magnitude < 1.5f) {
+        // If the enemy is not dead && two seconds has past since it was instantiated && a lot of other stuff, attack player.
+        if (gameObject.tag == "Enemy" && Time.timeSinceLevelLoad - timeSinceInstantiated > 2f && Vector3.Distance(transform.position, player.transform.position) < 15f && robotRB.velocity.magnitude < 1.5f) {
             AttackPlayer();
         }
     }
@@ -35,8 +35,18 @@ public class RobotController : MonoBehaviour
         // if nothing is between the player centre and the enemy
         if (!Physics.Linecast(transform.position, player.transform.position, EnemyLayer)) {
             Vector3 moveDirection = (player.transform.position - transform.position).normalized;
-            
+
+            Vector3 fixWeirdRotation = Vector3.zero;
+            fixWeirdRotation.y = transform.rotation.eulerAngles.y;
+            Quaternion fixWeirdRotationInQuaternion = Quaternion.Euler(fixWeirdRotation);
+
             robotRB.AddForce(moveDirection * 5f);
+            transform.rotation = fixWeirdRotationInQuaternion;
+        }
+    }
+    private void OnCollisionStay(Collision collision) {
+        if (collision.gameObject.CompareTag("Player") && gameObject.CompareTag("Enemy")) {
+            player.GetComponent<PlayerStats>().hitByEnemy();
         }
     }
 }

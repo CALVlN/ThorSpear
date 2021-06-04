@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class SpearAttack : MonoBehaviour {
     [SerializeField] Transform player;
@@ -37,6 +38,10 @@ public class SpearAttack : MonoBehaviour {
     bool hasHeld = false;
     float primaryAttackingTime = 0f;
 
+    // Collisions
+    float timeSinceLastCollision = 0f;
+    int shortTermSpawnCount;
+
     // Start is called before the first frame update
     void Start() {
         // I think this line might not work.
@@ -45,6 +50,7 @@ public class SpearAttack : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        timeSinceLastCollision += Time.deltaTime;
         if (!PauseMenu.isPaused) {
             if (Input.GetMouseButtonDown(0) && CanAttack() || initiateAttack) {
                 PrimaryAttack();
@@ -77,7 +83,7 @@ public class SpearAttack : MonoBehaviour {
     }
     private void OnCollisionEnter(Collision collision) {
         // Check if hammer velocity is fast enough and if it is then kill the enemy, or check if the player is picking up the hammer and kill the enemy no matter the velocity.
-        if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 20f || collision.gameObject.CompareTag("Enemy") && gameObject.GetComponent<SummonSpear>().pickingUpItem) {
+        if (collision.gameObject.CompareTag("Enemy") && collision.relativeVelocity.magnitude > 20f || collision.gameObject.CompareTag("Enemy") && gameObject.GetComponent<SummonSpear>().pickingUpItem) {            
             // I don't think this actually sets the tag to "Dead Enemy", but it does what I want!
             collision.gameObject.tag = "Dead Enemy";
             
@@ -85,16 +91,31 @@ public class SpearAttack : MonoBehaviour {
             collision.gameObject.GetComponentInChildren<MeshRenderer>().material = deadRobotMaterial;
             //enemyRenderer.GetComponent<MeshRenderer>().material = deadRobotMaterial;
             collision.rigidbody.constraints = RigidbodyConstraints.None;
-            Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
-            Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
+
+            // To stop the program from crashing but keep the bug
+            if (shortTermSpawnCount < 100) {
+                Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
+                Instantiate(robotPrefab, new Vector3(-1.8f, 6.3f, 4.4f), Quaternion.identity);
+            }
+
+            shortTermSpawnCount += 1;
+
+            if (timeSinceLastCollision > 0.1) {
+                timeSinceLastCollision = 0f;
+                shortTermSpawnCount = 0;
+            }
+
+            Score.currentScore += 1;
         }
         // Check if hammer velocity is fast enough and if it is then kill the turret, or check if the player is picking up the hammer and kill the turret no matter the velocity.
-        if (collision.gameObject.CompareTag("Turret") && collision.relativeVelocity.magnitude > 20f || collision.gameObject.CompareTag("Turret") && gameObject.GetComponent<SummonSpear>().pickingUpItem) {
+        if (turretAlive && collision.gameObject.CompareTag("Turret") && collision.relativeVelocity.magnitude > 20f || collision.gameObject.CompareTag("Turret") && gameObject.GetComponent<SummonSpear>().pickingUpItem) {
             var rigidbodies = Turret.GetComponentsInChildren<Rigidbody>();
+            
             PieceOfTurret.isKinematic = false;
             for (int i = 0; i < rigidbodies.Length; i++) {
                 rigidbodies[i].isKinematic = false;
             }
+            Score.currentScore += 10;
             turretAlive = false;
         }
     }

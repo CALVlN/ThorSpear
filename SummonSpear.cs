@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SummonSpear : MonoBehaviour
 {
@@ -42,12 +43,16 @@ public class SummonSpear : MonoBehaviour
     float airControlIdleTime = 0f;
     public float desiredDistanceFromPlayer = 0f;
 
+    // Hammer distance visualizing
+    [SerializeField] Slider hammerDistanceSlider;
+    [SerializeField] GameObject hammerDistanceStuffs;
+
     // Start is called before the first frame update
     void Start() {
-
+        hammerDistanceStuffs.SetActive(false);
     }
 
-    // Update is called once per frame.
+    // Update is called once per frame
     void Update() {
         if (!PauseMenu.isPaused) {
             // if q is pressed and the player is holding an item and not picking up an item, do this.
@@ -70,14 +75,14 @@ public class SummonSpear : MonoBehaviour
         }
     }
 
-    // This is run constantly from the frame after the player summons their weapon until they stop holding it.
+    // This is run constantly from when the player summons their weapon until they stop holding it.
     void HoldItem() {
         spearTargetPos = weaponTargetPosition.transform.position;
         spearTargetRot = weaponTargetPosition.transform.rotation;
+        hammerDistanceSlider.value = hammerDistanceSlider.maxValue - Vector3.Distance(transform.position, weaponTargetPosition.position);
 
         // If the item is being picked up, do this.
         if (pickingUpItem == true) {
-
             spearCurrentPos = spear.transform.position;
             Vector3 spearCurrentVel = spearRigidbody.velocity;
             float spearMaxVelocity = 60f;
@@ -85,6 +90,7 @@ public class SummonSpear : MonoBehaviour
 
             // If the weapon's distance to the player's hand is less than 0.2f, teleport to target position and do a bunch of other stuff.
             if (Vector3.Distance(spearCurrentPos, spearTargetPos) < 0.2f) {
+                hammerDistanceStuffs.SetActive(false);
                 pickingUpItem = false;
 
                 // Set weapon to triggers. Might need to change this so the weapon only ignores the player's collider but nothing else.
@@ -112,6 +118,9 @@ public class SummonSpear : MonoBehaviour
             spear.LookAt(spearTargetPos);
             // Fix weird rotation problem.
             transform.rotation *= Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+
+            // Set velocity to 0 if it's not at 0 since otherwise having it go through a lot of colliders is a problem.
+            spearRigidbody.velocity = Vector3.zero;
         }
 
         float distanceToPlayer = Vector3.Distance(spearCurrentPos, spearTargetPos);
@@ -138,6 +147,11 @@ public class SummonSpear : MonoBehaviour
         holdingItem = true;
         pickingUpItem = true;
 
+        if (Vector3.Distance(transform.position, weaponTargetPosition.position) > 40f) {
+            hammerDistanceStuffs.SetActive(true);
+            hammerDistanceSlider.maxValue = Vector3.Distance(transform.position, weaponTargetPosition.position);
+        }
+        
         // Turn off gravity.
         spearRigidbody.useGravity = false;
 

@@ -36,7 +36,7 @@ public class TurretBullet : MonoBehaviour {
             Destroy(gameObject);
         }
         else if (other.name == "Player") {
-            player.GetComponent<PlayerStats>().hitByTurret = true;
+            player.GetComponent<PlayerStats>().HitByTurret();
             Destroy(gameObject);
         }
     }
